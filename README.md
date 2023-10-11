@@ -16,10 +16,15 @@ Platforms marked as `Planned` are not currently supported but we plan to suppor 
 Any other platform is not supported.
 
 **Desktop: Windows/Mac/PC**
+
 - [x] `Supported`
+
 **Web**
+
 - [ ] Web | `Planned`
+
 **Mobile: Iphone/Android**
+
 - [ ] Mobile: Iphone/Android | `Not currently planned but open to it`
 
 ## Playing
