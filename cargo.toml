@@ -13,7 +13,12 @@ lto = true
 codegen-units = 1
 
 [workspace]
-members = ["crates/arts_core", "crates/arts_server", "crates/arts_client"]
+members = [
+    "crates/arts_core",
+    "crates/arts_server",
+    "crates/arts_client",
+    "crates/arts_authentication",
+]
 # exclude = ["dist", "build", "assets", "credits"]
 default-members = ["crates/arts_client"]
 resolver = "2"
