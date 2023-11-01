@@ -20,7 +20,7 @@ members = [
     "crates/arts_authentication",
     "tools/ci",
 ]
-# exclude = ["dist", "build", "assets", "credits"]
+exclude = ["tools/*", "arts-book/*"]
 default-members = ["crates/arts_client"]
 resolver = "2"
 
