@@ -38,7 +38,7 @@ Any other platform is not supported.
 
 Read `CONTRIBUTING.md` for more details but in simple:
 
-- View the design book available at [Design Book]() for overarching project goals and detailed descriptions and breakdowns of current systems.
+- View the design book available at [Arts-Book](https://noahshomette.github.io/arts_game/) for overarching project goals and detailed descriptions and breakdowns of current systems.
 - Find an issue thats open and fix/implement it
 - Make a PR with your fix/implementation describing how you fixed/implemented the issue
 - Get your PR merged!
