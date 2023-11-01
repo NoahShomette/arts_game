@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Check for missing pages in SUMMARY.md
-        working-directory: ./design
+        working-directory: ./arts-book
         run: ./verify_summary.sh
 
       - name: Setup mdBook
@@ -24,7 +24,7 @@ jobs:
           mdbook-version: "latest"
 
       - name: Build
-        working-directory: ./design
+        working-directory: ./arts-book
         run: mdbook build
 
       - name: Deploy
@@ -33,7 +33,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./design/book
+          publish_dir: ./arts-book/book
           # Don't store history of gh-pages branch
           # This ensures that the repository size doesn't grow too much
           force_orphan: true
