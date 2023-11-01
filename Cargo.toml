@@ -18,6 +18,7 @@ members = [
     "crates/arts_server",
     "crates/arts_client",
     "crates/arts_authentication",
+    "tools/ci",
 ]
 # exclude = ["dist", "build", "assets", "credits"]
 default-members = ["crates/arts_client"]
