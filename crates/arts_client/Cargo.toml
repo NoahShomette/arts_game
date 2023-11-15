@@ -8,3 +8,13 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bevy = { workspace = true, default-features = true}
+bevy_state_curves = { workspace = true }
+ureq = { workspace = true }
+arts_core = { path = "../arts_core" }
+wasm-bindgen = { workspace = true }
+serde-wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+web-sys = { workspace = true }

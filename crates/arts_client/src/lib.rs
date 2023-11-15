@@ -1,14 +1,26 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use std::sync::{
+    mpsc::{self, Receiver, Sender},
+    Arc, Mutex,
+};
+
+use bevy::prelude::Resource;
+use ureq::{Agent, Response};
+
+#[derive(Resource, Clone)]
+pub struct ReqwestClient {
+    pub client: Agent,
+    pub sender_channel: Sender<Result<Response, String>>,
+    pub reciever_channel: Arc<Mutex<Receiver<Result<Response, String>>>>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl ReqwestClient {
+    pub fn new() -> Self {
+        let (sender, reciever) = mpsc::channel::<Result<Response, String>>();
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        ReqwestClient {
+            client: Agent::new(),
+            sender_channel: sender,
+            reciever_channel: Arc::new(Mutex::new(reciever)),
+        }
     }
 }
