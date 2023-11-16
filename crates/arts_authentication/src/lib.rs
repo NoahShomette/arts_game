@@ -1,7 +1,11 @@
 use std::net::SocketAddr;
 
 use bevy::prelude::Resource;
-use tide::Server;
+use tide::{
+    http::headers::HeaderValue,
+    security::{CorsMiddleware, Origin},
+    Server,
+};
 
 pub mod authentication;
 pub mod http_relay_server;
@@ -12,7 +16,13 @@ pub struct TideServerResource(pub Server<()>, pub SocketAddr);
 
 impl TideServerResource {
     pub fn new(addr: SocketAddr) -> Self {
-        TideServerResource(tide::new(), addr)
+        let mut tide = tide::new();
+        tide.with(
+            CorsMiddleware::new()
+                .allow_methods("GET, POST, OPTIONS".parse::<HeaderValue>().unwrap())
+                .allow_origin(Origin::from("*")),
+        );
+        TideServerResource(tide, addr)
     }
     pub fn start_server(self) {
         bevy::tasks::IoTaskPool::get()

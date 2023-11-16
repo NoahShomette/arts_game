@@ -21,16 +21,24 @@ pub struct TaskPoolRes(pub TaskPool);
 
 fn sign_in(supabase: Res<ReqwestClient>, task_pool_res: Res<TaskPoolRes>) {
     let supabase = supabase.clone();
-    async_runners::run_async(
+    if let Some(task) = async_runners::run_async(
         async move {
-            let result = supabase
-                .client
-                .get("http://127.0.0.1:2030/auth/sign_in")
-                .send_json(Password {
+            let mut request = ehttp::Request::post(
+                "http://127.0.0.1:2030/auth/sign_in",
+                serde_json::to_string(&Password {
                     email: "noahshomette@gmail.com".to_string(),
                     password: "123456789".to_string(),
-                });
-            match result {
+                })
+                .unwrap()
+                .as_bytes()
+                .to_vec(),
+            );
+
+            request
+                .headers
+                .insert("Content-Type".to_string(), "application/json".to_string());
+      
+            match ehttp::fetch_async(request).await {
                 Ok(response) => {
                     let _ = supabase.sender_channel.send(Ok(response));
                 }
@@ -40,9 +48,9 @@ fn sign_in(supabase: Res<ReqwestClient>, task_pool_res: Res<TaskPoolRes>) {
             };
         },
         &task_pool_res.0,
-    )
-    .unwrap()
-    .detach();
+    ) {
+        task.detach();
+    }
 }
 
 fn receive_auth_results(supa: Res<ReqwestClient>) {
@@ -54,7 +62,7 @@ fn receive_auth_results(supa: Res<ReqwestClient>) {
 
     if result.is_ok() {
         #[cfg(not(target_arch = "wasm32"))]
-        println!("{:?}", result.unwrap().unwrap().into_string());
+        println!("{:?}", result.unwrap().unwrap().text());
 
         #[cfg(target_arch = "wasm32")]
         {

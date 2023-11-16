@@ -4,11 +4,10 @@ use std::sync::{
 };
 
 use bevy::prelude::Resource;
-use ureq::{Agent, Response};
+use ehttp::Response;
 
 #[derive(Resource, Clone)]
 pub struct ReqwestClient {
-    pub client: Agent,
     pub sender_channel: Sender<Result<Response, String>>,
     pub reciever_channel: Arc<Mutex<Receiver<Result<Response, String>>>>,
 }
@@ -18,7 +17,6 @@ impl ReqwestClient {
         let (sender, reciever) = mpsc::channel::<Result<Response, String>>();
 
         ReqwestClient {
-            client: Agent::new(),
             sender_channel: sender,
             reciever_channel: Arc::new(Mutex::new(reciever)),
         }

@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bevy = { workspace = true, default-features = true}
 bevy_state_curves = { workspace = true }
-ureq = { workspace = true }
+ehttp = { workspace = true }
 arts_core = { path = "../arts_core" }
 wasm-bindgen = { workspace = true }
 serde-wasm-bindgen = { workspace = true }

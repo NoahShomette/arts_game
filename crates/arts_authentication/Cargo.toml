@@ -10,10 +10,11 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
 bevy_state_curves = { workspace = true }
-ureq = { workspace = true }
+ehttp = { workspace = true }
 serde = { workspace = true }
 arts_core = { path = "../arts_core" }
 tide = { version = "0.16.0" }
 clap = { version = "4.4.8", features = ["derive"] }
 thiserror = { workspace = true }
-async-trait = {version = "0.1.74"}
+async-trait = { version = "0.1.74" }
+serde_json = { workspace = true }

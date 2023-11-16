@@ -10,13 +10,12 @@ use std::{
 
 use arts_core::client_authentication::{Password, RefreshToken};
 use bevy::prelude::Resource;
-use ureq::{Agent, Response};
+use ehttp::Response;
 
 use self::errors::{AuthErrors, AuthOk};
 
 #[derive(Clone, Debug, Resource)]
 pub struct Supabase {
-    pub client: Agent,
     pub url: String,
     pub api_key: String,
     pub jwt: String,
@@ -29,7 +28,6 @@ impl Supabase {
     // Creates a new Supabase client. If no parameters are provided, it will attempt to read the
     // environment variables `SUPABASE_URL`, `SUPABASE_API_KEY`, and `SUPABASE_JWT_SECRET`.
     pub fn new(url: Option<&str>, api_key: Option<&str>, jwt: Option<&str>) -> Self {
-        let client: Agent = Agent::new();
         let url: String = url
             .map(String::from)
             .unwrap_or_else(|| String::from("https://xoyzqprxsavttcikuzop.supabase.co"));
@@ -43,7 +41,6 @@ impl Supabase {
         let (sender, reciever) = mpsc::channel::<Result<AuthOk, AuthErrors>>();
 
         Supabase {
-            client,
             url: url.to_string(),
             api_key: api_key.to_string(),
             jwt: jwt.to_string(),
@@ -53,37 +50,50 @@ impl Supabase {
         }
     }
 
-    pub async fn sign_up_password(&self, sign_in_info: Password) -> impl Future<Output = ()> {
+    pub async fn sign_up_password(&self, sign_up_info: Password) -> impl Future<Output = ()> {
         let supabase = self.clone();
         async move {
             let request_url: String = format!("{}/auth/v1/signup", supabase.url);
-            match supabase
-                .client
-                .post(&request_url)
-                .set("apikey", &supabase.api_key.clone())
-                .set("Content-Type", "application/json")
-                .send_json(&sign_in_info)
-            {
-                Ok(response) => {
-                    match response.into_string() {
-                        Ok(response) => {
-                            let _ = supabase.sender_channel.send(Ok(AuthOk::SignUp(response)));
-                        }
-                        Err(err) => {
+
+            let mut request = ehttp::Request::post(
+                request_url,
+                serde_json::to_string(&sign_up_info)
+                    .unwrap()
+                    .as_bytes()
+                    .to_vec(),
+            );
+
+            request
+                .headers
+                .insert("apikey".to_string(), supabase.api_key.clone());
+            request
+                .headers
+                .insert("Content-Type".to_string(), "application/json".to_string());
+
+            ehttp::fetch(request, move |result| {
+                match result {
+                    Ok(response) => match response.text() {
+                        Some(text) => {
                             let _ = supabase
                                 .sender_channel
-                                .send(Err(AuthErrors::Basic(format!("{}", err))));
+                                .send(Ok(AuthOk::SignUp(text.to_owned())));
+                        }
+                        None => {
+                            let _ = supabase.sender_channel.send(Err(AuthErrors::Basic(format!(
+                                "{}: Response did not include a Body",
+                                response.status_text
+                            ))));
                             return;
                         }
-                    };
-                }
-                Err(err) => {
-                    let _ = supabase
-                        .sender_channel
-                        .send(Err(AuthErrors::Basic(format!("{}", err))));
-                    return;
-                }
-            }
+                    },
+                    Err(err) => {
+                        let _ = supabase
+                            .sender_channel
+                            .send(Err(AuthErrors::Basic(format!("{}", err))));
+                        return;
+                    }
+                };
+            });
         }
     }
 
@@ -92,97 +102,80 @@ impl Supabase {
         sign_in_info: Password,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=password", self.url);
-        match self
-            .client
-            .post(&request_url)
-            .set("apikey", &self.api_key.clone())
-            .set("Content-Type", "application/json")
-            .send_json(&sign_in_info)
-        {
-            Ok(response) => {
-                return Ok(response);
-            }
-            Err(err) => {
-                return Err(AuthErrors::Basic(format!("{}", err)));
-            }
+
+        let mut request = ehttp::Request::post(
+            request_url,
+            serde_json::to_string(&sign_in_info)
+                .unwrap()
+                .as_bytes()
+                .to_vec(),
+        );
+
+        request
+            .headers
+            .insert("apikey".to_string(), self.api_key.clone());
+        request
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
+
+        match ehttp::fetch_async(request).await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
         }
     }
 
-    pub async fn refresh_token(&self, refresh: RefreshToken) -> impl Future<Output = ()> {
-        let supabase: Supabase = self.clone();
-        async move {
-            let request_url: String =
-                format!("{}/auth/v1/token?grant_type=refresh_token", supabase.url);
-            match supabase
-                .client
-                .post(&request_url)
-                .set("apikey", &supabase.api_key.clone())
-                .set("Content-Type", "application/json")
-                .send_json(&refresh)
-            {
-                Ok(response) => {
-                    match response.into_string() {
-                        Ok(response) => {
-                            let _ = supabase
-                                .sender_channel
-                                .send(Ok(AuthOk::RefreshToken(response)));
-                        }
-                        Err(err) => {
-                            let _ = supabase
-                                .sender_channel
-                                .send(Err(AuthErrors::Basic(format!("{}", err))));
-                            return;
-                        }
-                    };
-                }
-                Err(err) => {
-                    let _ = supabase
-                        .sender_channel
-                        .send(Err(AuthErrors::Basic(format!("{}", err))));
-                    return;
-                }
-            }
+    pub async fn refresh_token(
+        &self,
+        refresh: RefreshToken,
+    ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
+        let request_url: String = format!("{}/auth/v1/token?grant_type=refresh_token", self.url);
+
+        let mut request = ehttp::Request::post(
+            request_url,
+            serde_json::to_string(&refresh).unwrap().as_bytes().to_vec(),
+        );
+
+        request
+            .headers
+            .insert("apikey".to_string(), self.api_key.clone());
+        request
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
+
+        match ehttp::fetch_async(request).await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
         }
     }
 
-    pub async fn logout(&self) -> impl Future<Output = ()> {
-        let supabase: Supabase = self.clone();
-        async move {
-            let request_url: String = format!("{}/auth/v1/logout", supabase.url);
-            let Some(bearer_token) = supabase.bearer_token else {
-                let _ = supabase
-                    .sender_channel
-                    .send(Err(AuthErrors::Basic(format!("Invalid Bearer Token"))));
-                return;
-            };
-            match supabase
-                .client
-                .post(&request_url)
-                .set("apikey", &supabase.api_key.clone())
-                .set("Content-Type", "application/json")
-                .set("autherization", &format!("Bearer {}", bearer_token))
-                .call()
-            {
-                Ok(response) => {
-                    match response.into_string() {
-                        Ok(response) => {
-                            let _ = supabase.sender_channel.send(Ok(AuthOk::SignOut(response)));
-                        }
-                        Err(err) => {
-                            let _ = supabase
-                                .sender_channel
-                                .send(Err(AuthErrors::Basic(format!("{}", err))));
-                            return;
-                        }
-                    };
-                }
-                Err(err) => {
-                    let _ = supabase
-                        .sender_channel
-                        .send(Err(AuthErrors::Basic(format!("{}", err))));
-                    return;
-                }
-            }
+    pub async fn logout(
+        &self,
+    ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
+        let request_url: String = format!("{}/auth/v1/logout", self.url);
+
+        let mut request = ehttp::Request::get(request_url);
+
+        let Some(bearer_token) = self.bearer_token.clone() else {
+            let _ = self
+                .sender_channel
+                .send(Err(AuthErrors::Basic(format!("Invalid Bearer Token"))));
+            return Err(AuthErrors::Basic(format!("Invalid Bearer Token")));
+        };
+
+        request
+            .headers
+            .insert("apikey".to_string(), self.api_key.clone());
+        request
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
+        request.headers.insert(
+            "autherization".to_string(),
+            format!("Bearer {}", bearer_token),
+        );
+
+        match ehttp::fetch_async(request).await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
         }
     }
 }
