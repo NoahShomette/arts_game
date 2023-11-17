@@ -8,7 +8,7 @@ use std::{
     },
 };
 
-use arts_core::network::client_authentication::{Claims, Password, RefreshToken};
+use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
 use bevy::prelude::Resource;
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
@@ -30,12 +30,13 @@ impl SupabaseConnection {
     ///
     /// # NOTE
     ///
-    /// This does not validate if the token sent gives authorization to access the requested data
+    /// This does not validate if the token sent gives authorization to access any requested data
     pub fn jwt_valid(&self, jwt: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
         let secret = self.jwt.clone();
 
         let decoding_key = DecodingKey::from_secret(secret.as_ref()).into();
-        let validation = Validation::new(Algorithm::HS256);
+        let mut validation = Validation::new(Algorithm::HS256);
+        validation.set_audience(&["authenticated"]);
         let decoded_token = decode::<Claims>(&jwt, &decoding_key, &validation);
 
         match decoded_token {
@@ -52,7 +53,7 @@ impl SupabaseConnection {
 
     // Creates a new Supabase client. If no parameters are provided, it will attempt to read the
     // environment variables `SUPABASE_URL`, `SUPABASE_API_KEY`, and `SUPABASE_JWT_SECRET`.
-    pub fn new(url: Option<&str>, api_key: Option<&str>, jwt: Option<&str>) -> Self {
+    pub fn new(url: Option<&str>, api_key: Option<&str>) -> Self {
         let url: String = url
             .map(String::from)
             .unwrap_or_else(|| String::from("https://xoyzqprxsavttcikuzop.supabase.co"));
@@ -76,7 +77,10 @@ impl SupabaseConnection {
         }
     }
 
-    pub async fn sign_up_password(&self, sign_up_info: Password) -> impl Future<Output = ()> {
+    pub async fn sign_up_password(
+        &self,
+        sign_up_info: PasswordLoginInfo,
+    ) -> impl Future<Output = ()> {
         let supabase = self.clone();
         async move {
             let request_url: String = format!("{}/auth/v1/signup", supabase.url);
@@ -125,7 +129,7 @@ impl SupabaseConnection {
 
     pub async fn sign_in_password(
         &self,
-        sign_in_info: Password,
+        sign_in_info: PasswordLoginInfo,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=password", self.url);
 

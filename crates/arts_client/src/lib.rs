@@ -1,29 +1,18 @@
-use std::sync::{
-    mpsc::{self, Receiver, Sender},
-    Arc, Mutex,
-};
+pub mod authentication;
+mod game_server_connection;
+pub mod ui;
 
-use bevy::prelude::Resource;
-use ehttp::Response;
+use arts_core::{authentication::client_authentication::AuthClient, TaskPoolRes};
+use authentication::AuthenticationPlugin;
+use bevy::{app::Plugin, tasks::TaskPoolBuilder};
+use game_server_connection::GameServerPlugin;
 
-#[derive(Resource, Clone)]
-pub struct AuthClient {
-    pub sender_channel: Sender<Result<(ClientResponses, Response), String>>,
-    pub reciever_channel: Arc<Mutex<Receiver<Result<(ClientResponses, Response), String>>>>,
-}
+pub struct ClientPlugin;
 
-impl AuthClient {
-    pub fn new() -> Self {
-        let (sender, reciever) = mpsc::channel::<Result<(ClientResponses, Response), String>>();
-
-        AuthClient {
-            sender_channel: sender,
-            reciever_channel: Arc::new(Mutex::new(reciever)),
-        }
+impl Plugin for ClientPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(AuthClient::new());
+        app.add_plugins((AuthenticationPlugin, GameServerPlugin));
+        app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));
     }
-}
-
-pub enum ClientResponses{
-    SignIn,
-    LogOut,
 }

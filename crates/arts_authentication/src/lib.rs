@@ -8,7 +8,6 @@ use tide::{
 };
 
 pub mod authentication;
-pub mod http_relay_server;
 
 /// A resource to hold the Tide Server during plugin construction. Is started at the end of the app plugin cycle
 #[derive(Resource)]

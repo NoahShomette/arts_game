@@ -16,7 +16,7 @@ pub struct AuthenticationPlugin;
 
 impl Plugin for AuthenticationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(SupabaseConnection::new(None, None, None));
+        app.insert_resource(SupabaseConnection::new(None, None));
         app.world
             .resource_scope(|world, mut tide: Mut<TideServerResource>| {
                 let supabase = world.get_resource::<SupabaseConnection>().unwrap();

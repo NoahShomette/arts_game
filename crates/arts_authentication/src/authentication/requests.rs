@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use arts_core::network::client_authentication::Password;
+use arts_core::authentication::client_authentication::PasswordLoginInfo;
 use arts_core::network::ClientHttpRequest;
 use tide::utils::async_trait;
-use tide::{Endpoint, Request, Error};
+use tide::{Endpoint, Error, Request};
 
 use super::supabase::SupabaseConnection;
 
@@ -20,14 +20,14 @@ impl Endpoint<()> for SignIn {
 }
 
 async fn sign_in(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
-    let request: ClientHttpRequest<Password> = req.body_json().await?;
+    let request: ClientHttpRequest<PasswordLoginInfo> = req.body_json().await?;
     let result = supabase.sign_in_password(request.request).await?;
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())
         .build())
 }
 
-/// A request to sign in
+/// A request to log out
 pub struct Logout {
     pub(crate) supabase: Arc<SupabaseConnection>,
 }

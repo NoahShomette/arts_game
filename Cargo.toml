@@ -38,3 +38,5 @@ serde-wasm-bindgen = { version = "0.6.1" }
 wasm-bindgen-futures = { version = "0.4.38" }
 ehttp = { version = "0.3.1", features = ["native-async"] }
 web-sys = { version = "0.3.65", features = ["console"] }
+bevy_eventwork = { git = "https://github.com/NoahShomette/bevy_eventwork.git", branch = "wasm_core_features", default-features = false }
+bevy_eventwork_mod_websockets = { git = "https://github.com/NoahShomette/bevy_eventwork_mod_websockets.git" }
