@@ -2,7 +2,6 @@ use arts_core::http_server::TideServerResource;
 use bevy::{app::Plugin, ecs::world::Mut};
 
 mod requests;
-pub use requests::{RequestNewGameRequest, RequestNewGameResponse};
 
 use crate::database::Database;
 

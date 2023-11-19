@@ -3,7 +3,7 @@
 //!
 //! Is also responsible though game_manager::save_manager with saving each game into the server files
 
-use arts_core::game::GameId;
+use arts_core::auth_server::game::GameId;
 use bevy::{
     app::Plugin,
     ecs::{

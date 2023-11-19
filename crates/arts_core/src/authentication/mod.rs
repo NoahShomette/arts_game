@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use tide::http::Url;
 
 use self::{
-    client_auth_systems::{signout, receive_auth_results, signin, signup},
+    client_auth_systems::{receive_auth_results, sign_in, sign_out, sign_up},
     client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
 };
 
@@ -29,10 +29,10 @@ impl Plugin for CoreAuthenticationPlugin {
         app.add_systems(
             Update,
             (
-                signin.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
+                sign_in.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
                 receive_auth_results,
-                signout,
-                signup.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
+                sign_out,
+                sign_up.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
             ),
         );
     }

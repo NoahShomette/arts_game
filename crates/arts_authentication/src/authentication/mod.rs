@@ -21,14 +21,14 @@ impl Plugin for AuthenticationPlugin {
         app.world.resource_scope(|world, database: Mut<Database>| {
             world.resource_scope(|world, mut tide: Mut<TideServerResource>| {
                 let supabase = world.get_resource::<SupabaseConnection>().unwrap();
-                tide.0.at("/auth/signin").post(SignIn {
+                tide.0.at("/auth/sign_in").post(SignIn {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });
-                tide.0.at("/auth/signout").post(Logout {
+                tide.0.at("/auth/sign_out").post(Logout {
                     supabase: Arc::new(supabase.clone()),
                 });
-                tide.0.at("/auth/signup").post(SignUp {
+                tide.0.at("/auth/sign_up").post(SignUp {
                     supabase: Arc::new(supabase.clone()),
                 });
             });

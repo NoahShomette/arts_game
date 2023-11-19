@@ -23,7 +23,7 @@ pub struct TryingToSignOut;
 #[derive(Resource)]
 pub struct TryingToSignIn;
 
-pub fn signup(
+pub fn sign_up(
     auth_client: Res<AuthClient>,
     task_pool_res: Res<TaskPoolRes>,
     ttl: Option<Res<TryingToSignUp>>,
@@ -42,7 +42,7 @@ pub fn signup(
         if let Some(task) = async_runners::run_async(
             async move {
                 let mut request = ehttp::Request::post(
-                    format!("{}/auth/signup", addr),
+                    format!("{}/auth/sign_up", addr),
                     serde_json::to_string(&ClientHttpRequest {
                         access_token: None,
                         request: login.info.clone(),
@@ -74,7 +74,7 @@ pub fn signup(
     }
 }
 
-pub fn signin(
+pub fn sign_in(
     auth_client: Res<AuthClient>,
     task_pool_res: Res<TaskPoolRes>,
     ttl: Option<Res<TryingToSignIn>>,
@@ -94,7 +94,7 @@ pub fn signin(
         if let Some(task) = async_runners::run_async(
             async move {
                 let mut request = ehttp::Request::post(
-                    format!("{}/auth/signin", addr),
+                    format!("{}/auth/sign_in", addr),
                     serde_json::to_string(&ClientHttpRequest {
                         access_token: None,
                         request: login.login_info,
@@ -126,7 +126,7 @@ pub fn signin(
     }
 }
 
-pub fn signout(
+pub fn sign_out(
     auth_client: Res<AuthClient>,
     task_pool_res: Res<TaskPoolRes>,
     client_info: Option<Res<ClientAuthenticationInfo>>,
@@ -148,7 +148,7 @@ pub fn signout(
             if let Some(task) = async_runners::run_async(
                 async move {
                     let mut request = ehttp::Request::post(
-                        format!("{}/auth/signout", addr),
+                        format!("{}/auth/sign_out", addr),
                         serde_json::to_string(&ClientHttpRequest {
                             access_token: Some(client_info.access_token.clone()),
                             request: (),

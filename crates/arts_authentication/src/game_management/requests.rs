@@ -1,8 +1,10 @@
-use arts_core::{game::GameId, network::ClientHttpRequest};
+use arts_core::{
+    auth_server::game::{GameId, RequestNewGameRequest, RequestNewGameResponse},
+    network::ClientHttpRequest,
+};
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use serde::{Deserialize, Serialize};
-use tide::{http::Url, Endpoint, Request};
+use tide::{Endpoint, Request};
 
 use crate::database::Database;
 
@@ -20,26 +22,15 @@ impl Endpoint<()> for RequestNewGame {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct RequestNewGameRequest {
-    /// The user_id from authentication.
-    pub server_id: String,
-    pub game_ip: Url,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct RequestNewGameResponse {
-    pub game_id: GameId,
-}
-
-struct QueryResult {
+struct QueryResultRNG {
     _server_id: String,
     _server_type: i32,
 }
 
-/// Registers a new game into the auth database.
+/// Requests adding a new game into the auth database.
 async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Result {
     let request: ClientHttpRequest<RequestNewGameRequest> = req.body_json().await?;
+    let mut server_type = 3;
     let game_id = Uuid::new_v4();
     if let Ok(mut connection) = database.connection.lock() {
         {
@@ -50,26 +41,26 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
             ))?;
 
             let server = stmt.query_map((), |row| {
-                Ok(QueryResult {
+                Ok(QueryResultRNG {
                     _server_id: row.get(0)?,
                     _server_type: row.get(1)?,
                 })
             })?;
-
             for server in server {
-                let _ = server?;
+                let server_info = server?;
+                server_type = server_info._server_type
             }
         }
-
         let tx = connection.transaction()?;
         let _ = tx.execute(
-            "insert into game_info (game_id, game_ip, is_open, in_progress, hosting_server_id) values (?1, ?2, ?3, ?4, ?5)",
+            "insert into game_info (game_id, game_ip, is_open, in_progress, hosting_server_id, server_type) values (?1, ?2, ?3, ?4, ?5, ?6)",
             &[
                 &game_id.to_string(),
                 &request.request.game_ip.to_string(),
                 "1",
                 "1",
                 &request.request.server_id,
+                &server_type.to_string(),
             ],
         );
         tx.commit()?;

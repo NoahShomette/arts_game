@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
+use arts_core::auth_server::player_data::PlayerGames;
 use arts_core::authentication::client_authentication::PasswordLoginInfo;
 use arts_core::authentication::SignInResponse;
 use arts_core::network::ClientHttpRequest;
-use arts_core::user_data::PlayerGames;
 use tide::utils::async_trait;
 use tide::{Endpoint, Error, Request};
 

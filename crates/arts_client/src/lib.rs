@@ -16,11 +16,17 @@ impl Plugin for ClientPlugin {
         app.add_plugins(NetworkPlugin);
 
         app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));
-        app.add_systems(Update, sign_up);
+        app.add_systems(Update, sign_in);
     }
 }
 
-fn sign_up(mut su: EventWriter<SignInEvent>) {
+fn sign_in(mut su: EventWriter<SignInEvent>) {
+    su.send(SignInEvent {
+        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456"),
+    });
+}
+
+fn request_games(mut su: EventWriter<SignInEvent>) {
     su.send(SignInEvent {
         login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456"),
     });
