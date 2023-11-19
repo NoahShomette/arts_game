@@ -1,35 +1,15 @@
-use std::net::SocketAddr;
-
-use bevy::prelude::Resource;
-use tide::{
-    http::headers::HeaderValue,
-    security::{CorsMiddleware, Origin},
-    Server,
-};
+use authentication::AuthenticationPlugin;
+use bevy::app::Plugin;
+use database::DatabaseManagerPlugin;
 
 pub mod authentication;
+pub mod database;
+pub mod game_management;
 
-/// A resource to hold the Tide Server during plugin construction. Is started at the end of the app plugin cycle
-#[derive(Resource)]
-pub struct TideServerResource(pub Server<()>, pub SocketAddr);
+pub struct ServerLibraryPlugin;
 
-impl TideServerResource {
-    pub fn new(addr: SocketAddr) -> Self {
-        let mut tide = tide::new();
-        tide.with(
-            CorsMiddleware::new()
-                .allow_methods("GET, POST, OPTIONS".parse::<HeaderValue>().unwrap())
-                .allow_origin(Origin::from("*")),
-        );
-        TideServerResource(tide, addr)
+impl Plugin for ServerLibraryPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_plugins((DatabaseManagerPlugin, AuthenticationPlugin));
     }
-    pub fn start_server(self) {
-        bevy::tasks::IoTaskPool::get()
-            .spawn(start_server(self.0, self.1.clone()))
-            .detach();
-    }
-}
-
-async fn start_server(tide: Server<()>, address: SocketAddr) -> tide::Result<()> {
-    Ok(tide.listen(address).await?)
 }

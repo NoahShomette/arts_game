@@ -1,7 +1,42 @@
-use bevy::ecs::schedule::States;
+use bevy::ecs::schedule::common_conditions::in_state;
+use bevy::{
+    app::{Plugin, Update},
+    ecs::{
+        schedule::{IntoSystemConfigs, States},
+        system::Resource,
+    },
+};
 use serde::{Deserialize, Serialize};
+use tide::http::Url;
 
+use self::{
+    client_auth_systems::{signout, receive_auth_results, signin, signup},
+    client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
+};
+
+mod client_auth_systems;
 pub mod client_authentication;
+
+pub struct CoreAuthenticationPlugin;
+
+impl Plugin for CoreAuthenticationPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.init_resource::<AuthenticationServerInfo>();
+        app.add_state::<AppAuthenticationState>();
+        app.add_event::<SignInEvent>()
+            .add_event::<SignOutEvent>()
+            .add_event::<SignUpEvent>();
+        app.add_systems(
+            Update,
+            (
+                signin.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
+                receive_auth_results,
+                signout,
+                signup.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
+            ),
+        );
+    }
+}
 
 /// The current Authentication state of the app. Basically whether the app has logged in or not
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
@@ -9,6 +44,25 @@ pub enum AppAuthenticationState {
     #[default]
     NotAuthenticated,
     Authenticated,
+}
+
+#[derive(Resource)]
+pub struct AuthenticationServerInfo {
+    pub addr: Url,
+}
+
+impl Default for AuthenticationServerInfo {
+    fn default() -> Self {
+        Self {
+            addr: Url::parse("http://127.0.0.1:2030").unwrap(),
+        }
+    }
+}
+
+/// The response returned from the server when a user logins.
+#[derive(Serialize, Deserialize)]
+pub struct SignUpResponse {
+    pub user: UserInfo,
 }
 
 /// The response returned from the server when a user logins.

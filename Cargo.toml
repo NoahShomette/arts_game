@@ -33,10 +33,14 @@ serde_json = "1.0"
 thiserror = "1.0.50"
 
 # Async web and WASM stuff
-wasm-bindgen = { version = "0.2.88", features = ["serde-serialize"] }
-serde-wasm-bindgen = { version = "0.6.1" }
-wasm-bindgen-futures = { version = "0.4.38" }
 ehttp = { version = "0.3.1", features = ["native-async"] }
 web-sys = { version = "0.3.65", features = ["console"] }
+# HTTP Server
+tide = { version = "0.16.0" }
+async-trait = { version = "0.1.74" }
+jsonwebtoken = { version = "9.1.0" }
+# Game
 bevy_eventwork = { git = "https://github.com/NoahShomette/bevy_eventwork.git", branch = "wasm_core_features", default-features = false }
 bevy_eventwork_mod_websockets = { git = "https://github.com/NoahShomette/bevy_eventwork_mod_websockets.git" }
+Url = { version = "2.4.1" }
+Uuid = {version = "1.5.0"}

@@ -14,6 +14,8 @@ pub struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins((GameServerPlugin, AuthenticationPlugin, GameRunnerPlugin));
+        // Game Server Plugin must be inserted first so that the GameWorldSimulationSchedule is available to all other plugins
+        app.add_plugins(GameServerPlugin);
+        app.add_plugins((AuthenticationPlugin, GameRunnerPlugin));
     }
 }

@@ -5,11 +5,24 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+http_server = ["tide", "async-trait", "jsonwebtoken"]
 
 [dependencies]
 bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
 bevy_state_curves = { workspace = true }
-ehttp = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+
+# HTTP Client
+ehttp = { workspace = true }
+
+# HTTP Networking
+tide = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+
+
+# Security
+sha3 = "0.10.8"
+base64ct = { version = "1.6.0", features = ["alloc"] }

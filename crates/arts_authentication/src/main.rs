@@ -3,7 +3,8 @@ use std::{
     str::FromStr,
 };
 
-use arts_authentication::{authentication::AuthenticationPlugin, TideServerResource};
+use arts_authentication::ServerLibraryPlugin;
+use arts_core::http_server::TideServerResource;
 use bevy::{prelude::App, MinimalPlugins};
 use clap::Parser;
 
@@ -27,7 +28,7 @@ fn main() {
     app.insert_resource(TideServerResource::new(server_addr));
     app.add_plugins(MinimalPlugins);
     // --- All custom plugins should go here
-    app.add_plugins(AuthenticationPlugin);
+    app.add_plugins(ServerLibraryPlugin);
     // ---
     // Must be the last items called starting the server
     let tide = app

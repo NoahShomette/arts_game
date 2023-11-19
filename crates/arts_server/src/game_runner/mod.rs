@@ -6,11 +6,12 @@ use bevy::{
     app::{FixedUpdate, Plugin},
     ecs::{
         entity::Entity,
-        system::{Commands, Query},
+        system::{Query, Resource, SystemState},
+        world::{Mut, World},
     },
 };
 
-use crate::game_manager::{GameInstance, GameNeedsSimulating};
+use crate::game_manager::{game_schedule::GameWorldSimulationSchedule, GameInstance};
 
 pub struct GameRunnerPlugin;
 
@@ -20,18 +21,28 @@ impl Plugin for GameRunnerPlugin {
     }
 }
 
-fn tick_games(mut games: Query<(Entity, &mut GameInstance)>, mut commands: Commands) {
-    for (entity, mut game) in games.iter_mut() {
-        game.game_tick.game_tick += game.game_tick.ticks_per_tick;
-        // If the new tick - the simulation tick amount is greater than or equal to the last time the game was simulated,
-        // we need to simulate it again
-        if game
-            .game_tick
-            .game_tick
-            .saturating_sub(game.game_tick.simulation_tick_amount)
-            >= game.game_tick.last_simulated_tick
-        {
-            commands.entity(entity).insert(GameNeedsSimulating);
+#[derive(Resource)]
+struct CachedSystemState {
+    games_query: SystemState<Query<'static, 'static, (Entity, &'static mut GameInstance)>>,
+}
+
+fn tick_games(world: &mut World) {
+    world.resource_scope(|world, mut query: Mut<CachedSystemState>| {
+        let mut games_query = query.games_query.get_mut(world);
+
+        for (_entity, mut game) in games_query.iter_mut() {
+            game.game_tick.game_tick += 1;
+            // If the new tick - the simulation tick amount is greater than or equal to the last time the game was simulated,
+            // we need to simulate it again
+            if game
+                .game_tick
+                .game_tick
+                .saturating_sub(game.game_tick.simulation_tick_amount)
+                >= game.game_tick.last_simulated_tick
+            {
+                game.game_world.run_schedule(GameWorldSimulationSchedule);
+                game.game_tick.last_simulated_tick = game.game_tick.game_tick
+            }
         }
-    }
+    });
 }

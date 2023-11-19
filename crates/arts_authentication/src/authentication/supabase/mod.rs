@@ -1,11 +1,8 @@
 pub mod errors;
 
-use std::{
-    future::Future,
-    sync::{
-        mpsc::{self, Receiver, Sender},
-        Arc, Mutex,
-    },
+use std::sync::{
+    mpsc::{self, Receiver, Sender},
+    Arc, Mutex,
 };
 
 use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
@@ -80,50 +77,28 @@ impl SupabaseConnection {
     pub async fn sign_up_password(
         &self,
         sign_up_info: PasswordLoginInfo,
-    ) -> impl Future<Output = ()> {
+    ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let supabase = self.clone();
-        async move {
-            let request_url: String = format!("{}/auth/v1/signup", supabase.url);
+        let request_url: String = format!("{}/auth/v1/signup", supabase.url);
 
-            let mut request = ehttp::Request::post(
-                request_url,
-                serde_json::to_string(&sign_up_info)
-                    .unwrap()
-                    .as_bytes()
-                    .to_vec(),
-            );
+        let mut request = ehttp::Request::post(
+            request_url,
+            serde_json::to_string(&sign_up_info)
+                .unwrap()
+                .as_bytes()
+                .to_vec(),
+        );
 
-            request
-                .headers
-                .insert("apikey".to_string(), supabase.api_key.clone());
-            request
-                .headers
-                .insert("Content-Type".to_string(), "application/json".to_string());
+        request
+            .headers
+            .insert("apikey".to_string(), supabase.api_key.clone());
+        request
+            .headers
+            .insert("Content-Type".to_string(), "application/json".to_string());
 
-            ehttp::fetch(request, move |result| {
-                match result {
-                    Ok(response) => match response.text() {
-                        Some(text) => {
-                            let _ = supabase
-                                .sender_channel
-                                .send(Ok(AuthOk::SignUp(text.to_owned())));
-                        }
-                        None => {
-                            let _ = supabase.sender_channel.send(Err(AuthErrors::Basic(format!(
-                                "{}: Response did not include a Body",
-                                response.status_text
-                            ))));
-                            return;
-                        }
-                    },
-                    Err(err) => {
-                        let _ = supabase
-                            .sender_channel
-                            .send(Err(AuthErrors::Basic(format!("{}", err))));
-                        return;
-                    }
-                };
-            });
+        match ehttp::fetch_async(request).await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
         }
     }
 

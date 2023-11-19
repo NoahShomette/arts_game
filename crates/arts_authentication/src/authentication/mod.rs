@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
+use arts_core::http_server::TideServerResource;
 use bevy::{ecs::world::Mut, prelude::Plugin};
 
-use crate::TideServerResource;
+use crate::database::Database;
 
 use self::{
-    requests::{Logout, SignIn},
+    requests::{Logout, SignIn, SignUp},
     supabase::SupabaseConnection,
 };
 
@@ -17,15 +18,20 @@ pub struct AuthenticationPlugin;
 impl Plugin for AuthenticationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(SupabaseConnection::new(None, None));
-        app.world
-            .resource_scope(|world, mut tide: Mut<TideServerResource>| {
+        app.world.resource_scope(|world, database: Mut<Database>| {
+            world.resource_scope(|world, mut tide: Mut<TideServerResource>| {
                 let supabase = world.get_resource::<SupabaseConnection>().unwrap();
-                tide.0.at("/auth/sign_in").post(SignIn {
+                tide.0.at("/auth/signin").post(SignIn {
+                    supabase: Arc::new(supabase.clone()),
+                    database: database.clone(),
+                });
+                tide.0.at("/auth/signout").post(Logout {
                     supabase: Arc::new(supabase.clone()),
                 });
-                tide.0.at("/auth/logout").post(Logout {
+                tide.0.at("/auth/signup").post(SignUp {
                     supabase: Arc::new(supabase.clone()),
                 });
             });
+        });
     }
 }
