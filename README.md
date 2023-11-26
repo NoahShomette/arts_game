@@ -61,4 +61,4 @@ The name (currently `Arts_Game` but subject to change) is licensed under CC-BY-N
 
 Any contributions made are accepted under the same license terms.
 
-The game is a free and open source game currently supported exclusively by Noah Shomette. In the future some type of monetization strategy might be needed to support game servers and game development. No matter what this repo will always remain here with the game available. See [Future Monetization](https://noahshomette.github.io/arts_game/future_monetization/) for details.
+The game is a free and open source game currently supported exclusively by Noah Shomette. In the future some type of monetization strategy might be needed to support game servers and game development. No matter what this repo will always remain here with the game available. See [Future Monetization](https://noahshomette.github.io/arts_game/future_monetization.html) for details.
