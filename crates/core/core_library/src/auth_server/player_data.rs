@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tide::http::Url;
+use url::Url;
 
 use crate::auth_server::game::GameId;
 

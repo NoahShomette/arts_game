@@ -1,6 +1,6 @@
 use bevy::utils::Uuid;
 use serde::{Deserialize, Serialize};
-use tide::http::Url;
+use url::Url;
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq)]
 pub struct GameId {

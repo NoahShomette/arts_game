@@ -12,7 +12,6 @@ pub struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(AuthClient::new());
         app.add_plugins(NetworkPlugin);
 
         app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));

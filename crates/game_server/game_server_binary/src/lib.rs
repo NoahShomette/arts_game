@@ -1,5 +1,6 @@
 use app_authentication::AuthenticationPlugin;
-use bevy::app::Plugin;
+use arts_core::TaskPoolRes;
+use bevy::{app::Plugin, tasks::TaskPoolBuilder};
 use game_runner::GameRunnerPlugin;
 use game_server_connection::GameServerPlugin;
 
@@ -14,6 +15,8 @@ pub struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));
+
         // Game Server Plugin must be inserted first so that the GameWorldSimulationSchedule is available to all other plugins
         app.add_plugins(GameServerPlugin);
         app.add_plugins((AuthenticationPlugin, GameRunnerPlugin));

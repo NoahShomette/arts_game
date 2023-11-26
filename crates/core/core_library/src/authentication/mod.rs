@@ -7,8 +7,9 @@ use bevy::{
     },
 };
 use serde::{Deserialize, Serialize};
-use tide::http::Url;
+use url::Url;
 
+use self::client_authentication::AuthClient;
 use self::{
     client_auth_systems::{receive_auth_results, sign_in, sign_out, sign_up},
     client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
@@ -21,6 +22,7 @@ pub struct CoreAuthenticationPlugin;
 
 impl Plugin for CoreAuthenticationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(AuthClient::new());
         app.init_resource::<AuthenticationServerInfo>();
         app.add_state::<AppAuthenticationState>();
         app.add_event::<SignInEvent>()

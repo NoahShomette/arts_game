@@ -17,6 +17,11 @@ pub struct GameRunnerPlugin;
 
 impl Plugin for GameRunnerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        let system_state: SystemState<Query<(Entity, &mut GameInstance)>> =
+            SystemState::new(&mut app.world);
+        app.insert_resource(CachedSystemState {
+            games_query: system_state,
+        });
         app.add_systems(FixedUpdate, tick_games);
     }
 }

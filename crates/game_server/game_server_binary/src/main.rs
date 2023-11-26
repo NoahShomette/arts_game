@@ -18,6 +18,10 @@ struct ServerArgs {
     address: String,
     #[arg(short, long)]
     port: u16,
+    #[arg(short, long)]
+    username: String,
+    #[arg(long)]
+    password: String,
 }
 
 fn main() {

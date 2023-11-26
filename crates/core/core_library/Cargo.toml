@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [features]
-http_server = ["tide", "async-trait", "jsonwebtoken"]
+http_server_feature = ["tide", "http_server", "async-trait", "jsonwebtoken"]
 
 [dependencies]
 bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
@@ -16,12 +16,13 @@ serde_json = { workspace = true }
 
 # HTTP Client
 ehttp = { workspace = true }
+url = { workspace = true }
 
 # HTTP Networking
+http_server = { path = "../http_server", optional = true }
 tide = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
 jsonwebtoken = { workspace = true, optional = true }
-
 
 # Security
 sha3 = "0.10.8"
