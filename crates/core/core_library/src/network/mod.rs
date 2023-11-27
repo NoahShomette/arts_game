@@ -1,8 +1,10 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-/// A wrapper that contains meta information that the client sends to the Auth Server in order to correctly make requests
+/// A wrapper that contains meta information that clients/game_server/Auth_server can sends to any of the Servers that run http servers
+/// in order to correctly make and process requests
+///
+/// Specific requests require this wrapper to desereialize the request properly. Basically all authentication requred requests
 #[derive(Serialize, Deserialize)]
-pub struct ClientHttpRequest<T> {
-    pub access_token: Option<String>,
+pub struct HttpRequestMeta<T> {
     pub request: T,
 }

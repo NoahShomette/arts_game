@@ -5,7 +5,7 @@ use bevy::prelude::Res;
 use ehttp::Response;
 
 use crate::authentication::SignInResponse;
-use crate::network::ClientHttpRequest;
+use crate::network::HttpRequestMeta;
 use crate::{async_runners, TaskPoolRes};
 
 use super::client_authentication::{
@@ -43,8 +43,7 @@ pub fn sign_up(
             async move {
                 let mut request = ehttp::Request::post(
                     format!("{}/auth/sign_up", addr),
-                    serde_json::to_string(&ClientHttpRequest {
-                        access_token: None,
+                    serde_json::to_string(&HttpRequestMeta {
                         request: login.info.clone(),
                     })
                     .unwrap()
@@ -95,8 +94,7 @@ pub fn sign_in(
             async move {
                 let mut request = ehttp::Request::post(
                     format!("{}/auth/sign_in", addr),
-                    serde_json::to_string(&ClientHttpRequest {
-                        access_token: None,
+                    serde_json::to_string(&HttpRequestMeta {
                         request: login.login_info,
                     })
                     .unwrap()
@@ -149,18 +147,20 @@ pub fn sign_out(
                 async move {
                     let mut request = ehttp::Request::post(
                         format!("{}/auth/sign_out", addr),
-                        serde_json::to_string(&ClientHttpRequest {
-                            access_token: Some(client_info.access_token.clone()),
-                            request: (),
-                        })
-                        .unwrap()
-                        .as_bytes()
-                        .to_vec(),
+                        serde_json::to_string(&HttpRequestMeta { request: () })
+                            .unwrap()
+                            .as_bytes()
+                            .to_vec(),
                     );
 
                     request
                         .headers
                         .insert("Content-Type".to_string(), "application/json".to_string());
+
+                    request.headers.insert(
+                        "autherization".to_string(),
+                        format!("Bearer {}", client_info.access_token.clone()),
+                    );
 
                     match ehttp::fetch_async(request).await {
                         Ok(response) => {

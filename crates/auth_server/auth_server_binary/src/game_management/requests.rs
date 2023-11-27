@@ -1,6 +1,6 @@
 use arts_core::{
     auth_server::game::{GameId, RequestNewGameRequest, RequestNewGameResponse},
-    network::ClientHttpRequest,
+    network::HttpRequestMeta,
 };
 use async_trait::async_trait;
 use bevy::utils::Uuid;
@@ -29,7 +29,7 @@ struct QueryResultRNG {
 
 /// Requests adding a new game into the auth database.
 async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Result {
-    let request: ClientHttpRequest<RequestNewGameRequest> = req.body_json().await?;
+    let request: HttpRequestMeta<RequestNewGameRequest> = req.body_json().await?;
     let mut server_type = 3;
     let game_id = Uuid::new_v4();
     if let Ok(mut connection) = database.connection.lock() {

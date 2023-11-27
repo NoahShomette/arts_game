@@ -10,6 +10,8 @@ use tide::{http::Url, Endpoint, Error, Request};
 
 use crate::{authentication::supabase::SupabaseConnection, database::Database};
 
+use super::verify_decode_jwt;
+
 /// A request to register a new game and return that result to the game server.
 ///
 /// The only data that the auth server stores is the game id and the game servers ip.
@@ -41,17 +43,7 @@ async fn request_player_games(
     supabase: &SupabaseConnection,
     database: &Database,
 ) -> tide::Result {
-    let Some(access_token) = req.header("authorization") else {
-        return Err(Error::from_str(400, "No Authorization Bearer found"));
-    };
-
-    let string_at = access_token.to_string();
-
-    let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1];
-
-    let Ok(claims) = supabase.jwt_valid(access_token) else {
-        return Err(Error::from_str(403, "Invalid Acess Token"));
-    };
+    let claims = verify_decode_jwt(&req, supabase)?;
     let mut games_mapped: Vec<(GameId, Url, i32)> = vec![];
     if let Ok(connection) = database.connection.lock() {
         {

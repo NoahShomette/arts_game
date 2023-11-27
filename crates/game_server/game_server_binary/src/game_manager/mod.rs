@@ -17,6 +17,7 @@ use crate::player_actions::PlayerAction;
 use self::{game_schedule::GameWorldSimulationSchedule, save_manager::SaveManagerPlugin};
 
 pub mod game_schedule;
+mod new_game_handler;
 mod save_manager;
 
 pub struct GameManagerPlugin;

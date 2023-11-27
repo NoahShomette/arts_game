@@ -3,11 +3,12 @@ use std::sync::Arc;
 use arts_core::auth_server::player_data::PlayerGames;
 use arts_core::authentication::client_authentication::PasswordLoginInfo;
 use arts_core::authentication::SignInResponse;
-use arts_core::network::ClientHttpRequest;
+use arts_core::network::HttpRequestMeta;
 use tide::utils::async_trait;
 use tide::{Endpoint, Error, Request};
 
 use crate::database::Database;
+use crate::user_management::verify_decode_jwt;
 
 use super::supabase::SupabaseConnection;
 
@@ -24,7 +25,7 @@ impl Endpoint<()> for SignUp {
 }
 
 async fn sign_up(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
-    let request: ClientHttpRequest<PasswordLoginInfo> = req.body_json().await?;
+    let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let result = supabase.sign_up_password(request.request).await?;
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())
@@ -49,7 +50,7 @@ async fn sign_in(
     supabase: &SupabaseConnection,
     database: &Database,
 ) -> tide::Result {
-    let request: ClientHttpRequest<PasswordLoginInfo> = req.body_json().await?;
+    let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let result = supabase.sign_in_password(request.request).await?;
     if let Ok(mut connection) = database.connection.lock() {
         let tx = connection.transaction()?;
@@ -84,12 +85,9 @@ impl Endpoint<()> for Logout {
     }
 }
 
-async fn logout(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
-    let request: ClientHttpRequest<()> = req.body_json().await?;
-    let Some(access_token) = request.access_token else {
-        return Err(Error::from_str(400, "Access Token Required to Logout"));
-    };
-    let result = supabase.logout(access_token).await?;
+async fn logout(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    let claims = verify_decode_jwt(&req, supabase)?;
+    let result = supabase.logout(claims.sub).await?;
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())
         .build())

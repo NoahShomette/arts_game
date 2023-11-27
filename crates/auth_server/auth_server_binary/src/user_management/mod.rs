@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use arts_core::http_server::TideServerResource;
+use arts_core::{authentication::client_authentication::Claims, http_server::TideServerResource};
 use bevy::{app::Plugin, ecs::world::Mut};
+use tide::{Error, Request};
 
 use crate::{authentication::supabase::SupabaseConnection, database::Database};
 
@@ -23,4 +24,23 @@ impl Plugin for UserManagementPlugin {
             });
         });
     }
+}
+
+/// Verifies a JWT as being a valid signed JWT from Supabase. Will decode it and return [`Claims`].
+///
+/// Returns an error if it fails at any part
+pub fn verify_decode_jwt(
+    req: &Request<()>,
+    supabase: &SupabaseConnection,
+) -> Result<Claims, Error> {
+    let Some(access_token) = req.header("authorization") else {
+        return Err(Error::from_str(400, "No Authorization Bearer found"));
+    };
+    let string_at = access_token.to_string();
+    let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1];
+
+    let Ok(claims) = supabase.jwt_valid(access_token) else {
+        return Err(Error::from_str(403, "Invalid Acess Token"));
+    };
+    Ok(claims)
 }
