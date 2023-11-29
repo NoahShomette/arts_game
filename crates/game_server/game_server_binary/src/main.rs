@@ -11,6 +11,7 @@ use bevy::{
     MinimalPlugins,
 };
 use clap::Parser;
+use console_parser::ConsoleParserPlugin;
 
 #[derive(Parser)]
 struct ServerArgs {
@@ -18,10 +19,6 @@ struct ServerArgs {
     address: String,
     #[arg(short, long)]
     port: u16,
-    #[arg(short, long)]
-    username: String,
-    #[arg(long)]
-    password: String,
 }
 
 fn main() {
@@ -35,7 +32,7 @@ fn main() {
     app.insert_resource(TideServerResource::new(server_addr));
     app.insert_resource(Time::<Fixed>::from_seconds(1.0));
     app.add_plugins((MinimalPlugins, bevy::log::LogPlugin::default()));
-
+    app.add_plugins(ConsoleParserPlugin);
     app.add_plugins(ServerPlugin);
 
     // Must be the last items called starting the server

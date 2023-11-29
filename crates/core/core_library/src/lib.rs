@@ -6,8 +6,8 @@ pub mod auth_server;
 pub mod authentication;
 #[cfg(feature = "http_server_feature")]
 pub use http_server;
-pub mod network;
 pub mod game_meta;
+pub mod network;
 
 #[derive(Resource)]
 pub struct TaskPoolRes(pub TaskPool);

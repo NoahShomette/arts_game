@@ -20,7 +20,7 @@ members = [
 
     # Game server
     "crates/game_server/game_server_binary",
-
+    "crates/game_server/console_parser",
     # Client
     "crates/client/client_binary",
 

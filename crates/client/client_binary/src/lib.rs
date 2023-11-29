@@ -21,12 +21,12 @@ impl Plugin for ClientPlugin {
 
 fn sign_in(mut su: EventWriter<SignInEvent>) {
     su.send(SignInEvent {
-        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456"),
+        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456", true),
     });
 }
 
 fn request_games(mut su: EventWriter<SignInEvent>) {
     su.send(SignInEvent {
-        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456"),
+        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456", true),
     });
 }

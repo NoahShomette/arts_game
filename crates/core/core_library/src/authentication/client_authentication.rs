@@ -14,15 +14,17 @@ use std::sync::{
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PasswordLoginInfo {
+    is_player: bool,
     email: String,
     password: String,
 }
 
 impl PasswordLoginInfo {
-    pub fn new(email: &str, password: &str) -> PasswordLoginInfo {
+    pub fn new(email: &str, password: &str, is_player: bool) -> PasswordLoginInfo {
         PasswordLoginInfo {
             email: email.to_string(),
             password: Base64::encode_string(&Sha3_256::digest(password)),
+            is_player,
         }
     }
 
@@ -32,6 +34,10 @@ impl PasswordLoginInfo {
 
     pub fn password(&self) -> &str {
         &self.password
+    }
+
+    pub fn is_player(&self) -> bool {
+        self.is_player
     }
 }
 
@@ -75,6 +81,7 @@ impl AuthClient {
     }
 }
 
+/// Resource inserted into the app when the app is signed in that holds the current authentication info
 #[derive(Resource, Clone)]
 pub struct ClientAuthenticationInfo {
     pub access_token: String,

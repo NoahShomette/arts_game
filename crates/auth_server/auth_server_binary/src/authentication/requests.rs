@@ -51,21 +51,33 @@ async fn sign_in(
     database: &Database,
 ) -> tide::Result {
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
+    let is_player = request.request.is_player();
     let result = supabase.sign_in_password(request.request).await?;
     if let Ok(mut connection) = database.connection.lock() {
         let tx = connection.transaction()?;
         let v: SignInResponse = serde_json::from_str(result.text().unwrap()).unwrap();
         let _user_id = v.user.id.clone();
-        let _ = tx.execute(
-            "insert into user_data (user_id, player_games) values (?1, ?2)",
-            &[
-                &_user_id,
-                &serde_json::to_string(&PlayerGames {
-                    current_games: vec![],
-                })
-                .unwrap(),
-            ],
-        );
+        match is_player {
+            true => {
+                let _ = tx.execute(
+                    "insert into player_data (player_id, player_games) values (?1, ?2)",
+                    &[
+                        &_user_id,
+                        &serde_json::to_string(&PlayerGames {
+                            current_games: vec![],
+                        })
+                        .unwrap(),
+                    ],
+                );
+            }
+            false => {
+                let _ = tx.execute(
+                    "insert into server_data (server_id, server_type) values (?1, ?2)",
+                    &[&_user_id, &serde_json::to_string(&0).unwrap()],
+                );
+            }
+        }
+
         tx.commit()?;
     }
     Ok(tide::Response::builder(200)

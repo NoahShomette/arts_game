@@ -1,10 +1,8 @@
 //! Responsible for meta information on games like settings and the like
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub struct GameSettings;
 
 #[derive(Serialize, Deserialize)]
-pub struct NewGameSettings{
-    
-}
+pub struct NewGameSettings {}

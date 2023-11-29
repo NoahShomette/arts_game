@@ -12,6 +12,10 @@ pub struct ServerLibraryPlugin;
 
 impl Plugin for ServerLibraryPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins((DatabaseManagerPlugin, AuthenticationPlugin, UserManagementPlugin));
+        app.add_plugins((
+            DatabaseManagerPlugin,
+            AuthenticationPlugin,
+            UserManagementPlugin,
+        ));
     }
 }
