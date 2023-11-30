@@ -18,7 +18,7 @@ use bevy::{
 use clap::{Parser, Subcommand};
 
 use arts_core::authentication::client_authentication::{
-    PasswordLoginInfo, SignInEvent, SignUpEvent,
+    PasswordLoginInfo, SignInEvent, SignOutEvent, SignUpEvent,
 };
 
 pub struct ConsoleParserPlugin;
@@ -38,6 +38,9 @@ impl Plugin for ConsoleParserPlugin {
 }
 
 #[derive(Parser)]
+#[command(name = "ags")]
+#[command(about = "CLI interface to control an Arts Game Server", long_about = None)]
+#[command(no_binary_name = true)]
 struct AppCommands {
     #[command(subcommand)]
     commands: SubCommands,
@@ -45,8 +48,12 @@ struct AppCommands {
 
 #[derive(Subcommand)]
 enum SubCommands {
+    /// Signs up as a server account using the provided email and password
     SignUp { email: String, password: String },
+    /// Signs into as a server account using the provided email and password
     SignIn { email: String, password: String },
+    /// Signs out of the app if its currently signed in
+    SignOut,
 }
 
 #[derive(Resource)]
@@ -88,6 +95,7 @@ fn try_parse_stdin(
     mut event_reader: EventReader<StdInEvents>,
     mut sign_in_events: EventWriter<SignInEvent>,
     mut sign_up_events: EventWriter<SignUpEvent>,
+    mut sign_out_events: EventWriter<SignOutEvent>,
 ) {
     for stdin_line in event_reader.read() {
         let mut line = vec![];
@@ -102,6 +110,7 @@ fn try_parse_stdin(
                 SubCommands::SignIn { email, password } => sign_in_events.send(SignInEvent {
                     login_info: PasswordLoginInfo::new(&email, &password, false),
                 }),
+                SubCommands::SignOut => sign_out_events.send(SignOutEvent),
             },
             Err(err) => info!("Error {}", err),
         }

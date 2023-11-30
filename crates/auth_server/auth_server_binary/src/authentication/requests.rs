@@ -9,7 +9,7 @@ use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
 use crate::database::Database;
-use crate::user_management::verify_decode_jwt;
+use crate::user_management::{request_access_token, verify_decode_jwt};
 
 use super::supabase::SupabaseConnection;
 
@@ -58,29 +58,30 @@ async fn sign_in(
     let result = supabase.sign_in_password(request.request).await?;
     if let Ok(mut connection) = database.connection.lock() {
         let tx = connection.transaction()?;
-        let v: SignInResponse = serde_json::from_str(result.text().unwrap()).unwrap();
-        let _user_id = v.user.id.clone();
-        match is_player {
-            true => {
-                let _ = tx.execute(
-                    "insert into player_data (player_id, player_games) values (?1, ?2)",
-                    &[
-                        &_user_id,
-                        &serde_json::to_string(&PlayerGames {
-                            current_games: vec![],
-                        })
-                        .unwrap(),
-                    ],
-                );
-            }
-            false => {
-                let _ = tx.execute(
-                    "insert into server_data (server_id, server_type) values (?1, ?2)",
-                    &[&_user_id, &serde_json::to_string(&0).unwrap()],
-                );
+        if let Some(result_text) = result.text() {
+            let v: SignInResponse = serde_json::from_str(result_text)?;
+            let _user_id = v.user.id.clone();
+            match is_player {
+                true => {
+                    let _ = tx.execute(
+                        "insert into player_data (player_id, player_games) values (?1, ?2)",
+                        &[
+                            &_user_id,
+                            &serde_json::to_string(&PlayerGames {
+                                current_games: vec![],
+                            })
+                            .unwrap(),
+                        ],
+                    );
+                }
+                false => {
+                    let _ = tx.execute(
+                        "insert into server_data (server_id, server_type) values (?1, ?2)",
+                        &[&_user_id, &serde_json::to_string(&0).unwrap()],
+                    );
+                }
             }
         }
-
         tx.commit()?;
     }
     Ok(tide::Response::builder(200)
@@ -89,21 +90,23 @@ async fn sign_in(
 }
 
 /// A request to log out
-pub struct Logout {
+pub struct SignOut {
     pub(crate) supabase: Arc<SupabaseConnection>,
 }
 
 #[async_trait]
-impl Endpoint<()> for Logout {
+impl Endpoint<()> for SignOut {
     async fn call(&self, req: Request<()>) -> tide::Result {
-        logout(req, &self.supabase).await
+        signout(req, &self.supabase).await
     }
 }
 
-async fn logout(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
-    info!("Received Sign Out Request");
-    let claims = verify_decode_jwt(&req, supabase)?;
-    let result = supabase.logout(claims.sub).await?;
+async fn signout(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    println!("Received Sign Out Request");
+    // Verify that it is a real user who is validly signed in
+    let _ = verify_decode_jwt(&req, supabase)?;
+    let access_token = request_access_token(&req)?;
+    let result = supabase.logout(access_token).await?;
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())
         .build())

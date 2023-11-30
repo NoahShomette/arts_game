@@ -9,7 +9,7 @@ use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo
 use bevy::prelude::Resource;
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use self::errors::{AuthErrors, AuthOk};
 
@@ -50,7 +50,7 @@ impl SupabaseConnection {
         let decoding_key = DecodingKey::from_secret(secret.as_ref()).into();
         let mut validation = Validation::new(Algorithm::HS256);
         validation.set_audience(&["authenticated"]);
-        let decoded_token = decode::<Claims>(&jwt, &decoding_key, &validation);
+        let decoded_token = decode::<Claims>(jwt, &decoding_key, &validation);
 
         match decoded_token {
             Ok(token_data) => {
@@ -94,8 +94,7 @@ impl SupabaseConnection {
         &self,
         sign_up_info: PasswordLoginInfo,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
-        let supabase = self.clone();
-        let request_url: String = format!("{}/auth/v1/signup", supabase.url);
+        let request_url: String = format!("{}/auth/v1/signup", self.url);
 
         let mut request = ehttp::Request::post(
             request_url,
@@ -107,7 +106,7 @@ impl SupabaseConnection {
 
         request
             .headers
-            .insert("apikey".to_string(), supabase.api_key.clone());
+            .insert("apikey".to_string(), self.api_key.clone());
         request
             .headers
             .insert("Content-Type".to_string(), "application/json".to_string());
@@ -175,10 +174,6 @@ impl SupabaseConnection {
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/logout", self.url);
 
-        if self.jwt_valid(&access_token).is_err() {
-            return Err(AuthErrors::Basic("Invalid Access Token".to_owned()));
-        }
-
         let mut request = ehttp::Request::get(request_url);
 
         request
@@ -188,7 +183,7 @@ impl SupabaseConnection {
             .headers
             .insert("Content-Type".to_string(), "application/json".to_string());
         request.headers.insert(
-            "autherization".to_string(),
+            "authorization".to_string(),
             format!("Bearer {}", access_token),
         );
 

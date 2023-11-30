@@ -12,6 +12,8 @@ use std::sync::{
     Arc, Mutex,
 };
 
+use super::{UserInfo, SignInResponse};
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PasswordLoginInfo {
     is_player: bool,
@@ -81,10 +83,10 @@ impl AuthClient {
     }
 }
 
-/// Resource inserted into the app when the app is signed in that holds the current authentication info
+/// Resource inserted into the app when the app is signed in that holds the current authentication and client info
 #[derive(Resource, Clone)]
 pub struct ClientAuthenticationInfo {
-    pub access_token: String,
+    pub sign_in_info: SignInResponse,
 }
 
 /// An event sent to sign in

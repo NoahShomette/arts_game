@@ -68,7 +68,7 @@ pub struct SignUpResponse {
 }
 
 /// The response returned from the server when a user logins.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct SignInResponse {
     pub access_token: String,
     pub token_type: String,
@@ -78,7 +78,7 @@ pub struct SignInResponse {
     pub user: UserInfo,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UserInfo {
     pub id: String,
     pub aud: String,
@@ -94,16 +94,16 @@ pub struct UserInfo {
     pub identities: Vec<Identity>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct UserMetadata {}
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct AppMetadata {
     pub provider: String,
     pub providers: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Identity {
     pub id: String,
     pub user_id: String,
@@ -114,7 +114,7 @@ pub struct Identity {
     pub updated_at: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct IdentityData {
     pub email: String,
     pub sub: String,

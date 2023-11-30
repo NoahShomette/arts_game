@@ -6,7 +6,7 @@ use bevy::{ecs::world::Mut, prelude::Plugin};
 use crate::database::Database;
 
 use self::{
-    requests::{Logout, SignIn, SignUp},
+    requests::{SignOut, SignIn, SignUp},
     supabase::SupabaseConnection,
 };
 
@@ -25,7 +25,7 @@ impl Plugin for AuthenticationPlugin {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });
-                tide.0.at("/auth/sign_out").post(Logout {
+                tide.0.at("/auth/sign_out").post(SignOut {
                     supabase: Arc::new(supabase.clone()),
                 });
                 tide.0.at("/auth/sign_up").post(SignUp {

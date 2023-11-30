@@ -131,14 +131,14 @@ pub fn sign_out(
     client_info: Option<Res<ClientAuthenticationInfo>>,
     ttl: Option<Res<TryingToSignOut>>,
     mut commands: Commands,
-    mut login_events: EventReader<SignOutEvent>,
+    mut sign_out_events: EventReader<SignOutEvent>,
     auth_server_info: Res<AuthenticationServerInfo>,
 ) {
     if ttl.is_some() {
         return;
     }
     if let Some(client) = client_info {
-        for _ in login_events.read() {
+        for _ in sign_out_events.read() {
             commands.insert_resource(TryingToSignOut);
             let client_info = client.clone();
             let auth_client = auth_client.clone();
@@ -160,8 +160,8 @@ pub fn sign_out(
                         .insert("Content-Type".to_string(), "application/json".to_string());
 
                     request.headers.insert(
-                        "autherization".to_string(),
-                        format!("Bearer {}", client_info.access_token.clone()),
+                        "authorization".to_string(),
+                        format!("Bearer {}", client_info.sign_in_info.access_token.clone()),
                     );
 
                     match ehttp::fetch_async(request).await {
@@ -203,7 +203,7 @@ pub fn receive_auth_results(
             Ok(result) => match (result.1.ok, result.1.status) {
                 (true, 200) => handle_response_data(result, commands, app_state),
                 (_, _) => info!(
-                    "Error Code {} : Status Text '{}'",
+                    "Error Code - {} : Status Text - '{}'",
                     result.1.status, result.1.status_text
                 ),
             },
@@ -221,7 +221,7 @@ pub fn handle_response_data(
         AuthenticationResponses::SignIn => {
             let v: SignInResponse = serde_json::from_str(response.1.text().unwrap()).unwrap();
             commands.insert_resource(ClientAuthenticationInfo {
-                access_token: v.access_token.clone(),
+                sign_in_info: v.clone(),
             });
             app_state.set(AppAuthenticationState::Authenticated);
             println!("Logged in")
@@ -231,7 +231,7 @@ pub fn handle_response_data(
             app_state.set(AppAuthenticationState::NotAuthenticated);
             println!("Logged Out");
         }
-        AuthenticationResponses::SignUp(login_info) => {
+        AuthenticationResponses::SignUp(_) => {
             println!("Signed Up");
         }
     }
