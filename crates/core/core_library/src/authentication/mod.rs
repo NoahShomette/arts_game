@@ -33,7 +33,7 @@ impl Plugin for CoreAuthenticationPlugin {
             (
                 sign_in.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
                 receive_auth_results,
-                sign_out,
+                sign_out.run_if(in_state(AppAuthenticationState::Authenticated)),
                 sign_up.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
             ),
         );

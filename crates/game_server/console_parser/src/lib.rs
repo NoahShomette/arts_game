@@ -65,17 +65,19 @@ fn read_stdin(mut eventwriter: EventWriter<StdInEvents>, channel: Res<StdInChann
 
 fn start_std_in_reader(channel: Res<StdInChannel>) {
     let sender = channel.send.clone();
+    let stdin = io::stdin(); // We get `Stdin` here.
     bevy::tasks::IoTaskPool::get()
         .spawn(async move {
-            let mut buffer = String::new();
-            let stdin = io::stdin(); // We get `Stdin` here.
-            match stdin.read_line(&mut buffer) {
-                Ok(_) => {
-                    let _ = sender.send(buffer);
-                }
-                Err(_) => {
-                    info!("error reading from StdIn");
-                    return;
+            loop {
+                let mut buffer = String::new();
+                match stdin.read_line(&mut buffer) {
+                    Ok(_) => {
+                        let _ = sender.send(buffer);
+                    }
+                    Err(_) => {
+                        info!("error reading from StdIn");
+                        continue;
+                    }
                 }
             }
         })
@@ -88,7 +90,11 @@ fn try_parse_stdin(
     mut sign_up_events: EventWriter<SignUpEvent>,
 ) {
     for stdin_line in event_reader.read() {
-        match AppCommands::try_parse_from(vec![OsString::from(stdin_line.line.clone())].iter()) {
+        let mut line = vec![];
+        for word in stdin_line.line.trim().split_whitespace() {
+            line.push(word);
+        }
+        match AppCommands::try_parse_from(line) {
             Ok(command) => match command.commands {
                 SubCommands::SignUp { email, password } => sign_up_events.send(SignUpEvent {
                     info: PasswordLoginInfo::new(&email, &password, false),
@@ -97,7 +103,7 @@ fn try_parse_stdin(
                     login_info: PasswordLoginInfo::new(&email, &password, false),
                 }),
             },
-            Err(err) => info!("{}", err),
+            Err(err) => info!("Error {}", err),
         }
     }
 }

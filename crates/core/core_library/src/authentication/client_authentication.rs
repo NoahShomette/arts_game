@@ -87,13 +87,13 @@ pub struct ClientAuthenticationInfo {
     pub access_token: String,
 }
 
-/// An event sent to login
+/// An event sent to sign in
 #[derive(Event, Clone)]
 pub struct SignInEvent {
     pub login_info: PasswordLoginInfo,
 }
 
-/// An event sent to login
+/// An event sent to sign up
 #[derive(Event, Clone)]
 pub struct SignUpEvent {
     pub info: PasswordLoginInfo,

@@ -4,8 +4,9 @@ use arts_core::auth_server::player_data::PlayerGames;
 use arts_core::authentication::client_authentication::PasswordLoginInfo;
 use arts_core::authentication::SignInResponse;
 use arts_core::network::HttpRequestMeta;
+use bevy::log::info;
 use tide::utils::async_trait;
-use tide::{Endpoint, Error, Request};
+use tide::{Endpoint, Request};
 
 use crate::database::Database;
 use crate::user_management::verify_decode_jwt;
@@ -25,6 +26,7 @@ impl Endpoint<()> for SignUp {
 }
 
 async fn sign_up(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    info!("Received Sign Up Request");
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let result = supabase.sign_up_password(request.request).await?;
     Ok(tide::Response::builder(200)
@@ -50,6 +52,7 @@ async fn sign_in(
     supabase: &SupabaseConnection,
     database: &Database,
 ) -> tide::Result {
+    info!("Received Sign In Request");
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let is_player = request.request.is_player();
     let result = supabase.sign_in_password(request.request).await?;
@@ -98,6 +101,7 @@ impl Endpoint<()> for Logout {
 }
 
 async fn logout(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    info!("Received Sign Out Request");
     let claims = verify_decode_jwt(&req, supabase)?;
     let result = supabase.logout(claims.sub).await?;
     Ok(tide::Response::builder(200)

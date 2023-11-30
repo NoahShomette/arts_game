@@ -9,8 +9,24 @@ use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo
 use bevy::prelude::Resource;
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use serde::{Serialize, Deserialize};
 
 use self::errors::{AuthErrors, AuthOk};
+
+#[derive(Serialize, Deserialize)]
+struct InternalPasswordLoginInfo {
+    email: String,
+    password: String,
+}
+
+impl From<PasswordLoginInfo> for InternalPasswordLoginInfo {
+    fn from(value: PasswordLoginInfo) -> Self {
+        Self {
+            email: value.email().to_string(),
+            password: value.password().to_string(),
+        }
+    }
+}
 
 /// A resource containing meta info connecting the auth server to the supabase instance and communicating supabase interactions in and out via an MPSC
 #[derive(Clone, Debug, Resource)]
@@ -83,7 +99,7 @@ impl SupabaseConnection {
 
         let mut request = ehttp::Request::post(
             request_url,
-            serde_json::to_string(&sign_up_info)
+            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_up_info))
                 .unwrap()
                 .as_bytes()
                 .to_vec(),
@@ -110,7 +126,7 @@ impl SupabaseConnection {
 
         let mut request = ehttp::Request::post(
             request_url,
-            serde_json::to_string(&sign_in_info)
+            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_in_info))
                 .unwrap()
                 .as_bytes()
                 .to_vec(),

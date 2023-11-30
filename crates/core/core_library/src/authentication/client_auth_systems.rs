@@ -1,6 +1,7 @@
 use bevy::ecs::event::{EventReader, EventWriter};
 use bevy::ecs::schedule::NextState;
 use bevy::ecs::system::{Commands, ResMut, Resource};
+use bevy::log::info;
 use bevy::prelude::Res;
 use ehttp::Response;
 
@@ -39,18 +40,18 @@ pub fn sign_up(
         let supabase = auth_client.clone();
         let login = sign_up.clone();
         let addr = auth_server_info.addr.clone();
+        let message = match serde_json::to_string(&HttpRequestMeta {
+            request: login.info.clone(),
+        }) {
+            Ok(message) => message.as_bytes().to_vec(),
+            Err(err) => {
+                let _ = supabase.sender_channel.send(Err(format!("{}", err)));
+                return;
+            }
+        };
         if let Some(task) = async_runners::run_async(
             async move {
-                let mut request = ehttp::Request::post(
-                    format!("{}/auth/sign_up", addr),
-                    serde_json::to_string(&HttpRequestMeta {
-                        request: login.info.clone(),
-                    })
-                    .unwrap()
-                    .as_bytes()
-                    .to_vec(),
-                );
-
+                let mut request = ehttp::Request::post(format!("{}auth/sign_up", addr), message);
                 request
                     .headers
                     .insert("Content-Type".to_string(), "application/json".to_string());
@@ -89,18 +90,18 @@ pub fn sign_in(
         let supabase = auth_client.clone();
         let login = login.clone();
         let addr = auth_server_info.addr.clone();
-
+        let message = match serde_json::to_string(&HttpRequestMeta {
+            request: login.login_info.clone(),
+        }) {
+            Ok(message) => message.as_bytes().to_vec(),
+            Err(err) => {
+                let _ = supabase.sender_channel.send(Err(format!("{}", err)));
+                return;
+            }
+        };
         if let Some(task) = async_runners::run_async(
             async move {
-                let mut request = ehttp::Request::post(
-                    format!("{}/auth/sign_in", addr),
-                    serde_json::to_string(&HttpRequestMeta {
-                        request: login.login_info,
-                    })
-                    .unwrap()
-                    .as_bytes()
-                    .to_vec(),
-                );
+                let mut request = ehttp::Request::post(format!("{}auth/sign_in", addr), message);
 
                 request
                     .headers
@@ -142,16 +143,17 @@ pub fn sign_out(
             let client_info = client.clone();
             let auth_client = auth_client.clone();
             let addr = auth_server_info.addr.clone();
-
+            let message = match serde_json::to_string(&HttpRequestMeta { request: () }) {
+                Ok(message) => message.as_bytes().to_vec(),
+                Err(err) => {
+                    let _ = auth_client.sender_channel.send(Err(format!("{}", err)));
+                    return;
+                }
+            };
             if let Some(task) = async_runners::run_async(
                 async move {
-                    let mut request = ehttp::Request::post(
-                        format!("{}/auth/sign_out", addr),
-                        serde_json::to_string(&HttpRequestMeta { request: () })
-                            .unwrap()
-                            .as_bytes()
-                            .to_vec(),
-                    );
+                    let mut request =
+                        ehttp::Request::post(format!("{}auth/sign_out", addr), message);
 
                     request
                         .headers
@@ -183,9 +185,8 @@ pub fn sign_out(
 
 pub fn receive_auth_results(
     supa: Res<AuthClient>,
-    commands: Commands,
+    mut commands: Commands,
     app_state: ResMut<NextState<AppAuthenticationState>>,
-    login_events: EventWriter<SignInEvent>,
 ) {
     let Ok(channel) = supa.reciever_channel.lock() else {
         return;
@@ -193,10 +194,20 @@ pub fn receive_auth_results(
 
     let result = channel.try_recv();
 
+    commands.remove_resource::<TryingToSignIn>();
+    commands.remove_resource::<TryingToSignOut>();
+    commands.remove_resource::<TryingToSignUp>();
+
     if let Ok(result) = result {
         match result {
-            Ok(result) => handle_response_data(result, commands, app_state, login_events),
-            Err(err) => println!("Error {}", err),
+            Ok(result) => match (result.1.ok, result.1.status) {
+                (true, 200) => handle_response_data(result, commands, app_state),
+                (_, _) => info!(
+                    "Error Code {} : Status Text '{}'",
+                    result.1.status, result.1.status_text
+                ),
+            },
+            Err(err) => info!("Error {}", err),
         };
     };
 }
@@ -205,11 +216,9 @@ pub fn handle_response_data(
     response: (AuthenticationResponses, Response),
     mut commands: Commands,
     mut app_state: ResMut<NextState<AppAuthenticationState>>,
-    mut login_events: EventWriter<SignInEvent>,
 ) {
     match response.0 {
         AuthenticationResponses::SignIn => {
-            commands.remove_resource::<TryingToSignIn>();
             let v: SignInResponse = serde_json::from_str(response.1.text().unwrap()).unwrap();
             commands.insert_resource(ClientAuthenticationInfo {
                 access_token: v.access_token.clone(),
@@ -219,16 +228,11 @@ pub fn handle_response_data(
         }
         AuthenticationResponses::SignOut => {
             commands.remove_resource::<ClientAuthenticationInfo>();
-            commands.remove_resource::<TryingToSignOut>();
             app_state.set(AppAuthenticationState::NotAuthenticated);
             println!("Logged Out");
         }
         AuthenticationResponses::SignUp(login_info) => {
-            commands.remove_resource::<TryingToSignUp>();
-            login_events.send(SignInEvent {
-                login_info: login_info,
-            });
-            println!("Signed Up")
+            println!("Signed Up");
         }
     }
 }

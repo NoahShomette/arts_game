@@ -32,8 +32,8 @@ fn main() {
     app.insert_resource(TideServerResource::new(server_addr));
     app.insert_resource(Time::<Fixed>::from_seconds(1.0));
     app.add_plugins((MinimalPlugins, bevy::log::LogPlugin::default()));
-    app.add_plugins(ConsoleParserPlugin);
     app.add_plugins(ServerPlugin);
+    app.add_plugins(ConsoleParserPlugin);
 
     // Must be the last items called starting the server
     let tide = app
