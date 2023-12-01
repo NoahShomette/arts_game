@@ -1,39 +1,81 @@
-use std::error::Error;
-
 use arts_core::{
-    auth_server::game::RequestNewGameRequest, game_meta::NewGameSettings, network::HttpRequestMeta,
+    auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
+    game_meta::NewGameSettings,
+    network::{GameAddrInfo, HttpRequestMeta},
 };
 use bevy_eventwork::async_trait;
 use serde::{Deserialize, Serialize};
-use tide::{http::Url, Endpoint, Request};
+use tide::{http::Url, Endpoint, Error, Request};
 
 /// A request to start a new game
 pub struct RequestNewGame {
+    pub(crate) access_token: String,
     pub(crate) authentication_server_addr: Url,
+    pub(crate) self_server_id: String,
+    pub(crate) game_ip: GameAddrInfo,
 }
 
 #[async_trait]
 impl Endpoint<()> for RequestNewGame {
     async fn call(&self, req: Request<()>) -> tide::Result {
-        request_new_game(req, self.authentication_server_addr.clone()).await
+        request_new_game(
+            req,
+            self.access_token.clone(),
+            self.authentication_server_addr.clone(),
+            self.game_ip.clone(),
+            self.self_server_id.clone(),
+        )
+        .await
     }
 }
 
 /// Handles requests to start a new game
-async fn request_new_game(mut req: Request<()>, auth_server_addr: Url) -> tide::Result {
+async fn request_new_game(
+    mut req: Request<()>,
+    access_token: String,
+    auth_server_addr: Url,
+    game_ip: GameAddrInfo,
+    self_server_id: String,
+) -> tide::Result {
     let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
-    /*
+    let new_game_id = request_new_game_id(
+        access_token,
+        auth_server_addr,
+        game_ip.clone(),
+        self_server_id,
+    )
+    .await?;
+    Ok(tide::Response::builder(200)
+        .body(
+            serde_json::to_string(&NewGameResponse {
+                game_id: new_game_id,
+                game_ip,
+            })
+            .unwrap(),
+        )
+        .build())
+}
+
+async fn request_new_game_id(
+    access_token: String,
+    auth_server_addr: Url,
+    game_ip: GameAddrInfo,
+    self_server_id: String,
+) -> tide::Result<GameId> {
+    let message = match serde_json::to_string(&HttpRequestMeta {
+        request: RequestNewGameRequest {
+            server_id: self_server_id,
+            game_addr: game_ip,
+        },
+    }) {
+        Ok(message) => message.as_bytes().to_vec(),
+        Err(err) => {
+            return Err(Error::from_str(500, err));
+        }
+    };
     let mut request = ehttp::Request::post(
         format!("{}/game_management/request_new_game", auth_server_addr),
-        serde_json::to_string(&HttpRequestMeta {
-            request: RequestNewGameRequest {
-                server_id: todo!(),
-                game_ip: todo!(),
-            },
-        })
-        .unwrap()
-        .as_bytes()
-        .to_vec(),
+        message,
     );
 
     request
@@ -42,15 +84,23 @@ async fn request_new_game(mut req: Request<()>, auth_server_addr: Url) -> tide::
 
     request.headers.insert(
         "autherization".to_string(),
-        format!("Bearer {}", client_info.access_token.clone()),
+        format!("Bearer {}", access_token),
     );
 
-    let response = ehttp::fetch_async(request).await?;
-    */
-    Ok(tide::Response::builder(200)
-        .body(serde_json::to_string(&NewGameResponse {}).unwrap())
-        .build())
+    match ehttp::fetch_async(request).await {
+        Ok(response) => {
+            let new_game_id: RequestNewGameIdResponse =
+                serde_json::from_str(response.text().unwrap()).unwrap();
+            return Ok(new_game_id.game_id);
+        }
+        Err(err) => {
+            return Err(Error::from_str(500, err));
+        }
+    };
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct NewGameResponse {}
+pub struct NewGameResponse {
+    pub game_id: GameId,
+    pub game_ip: GameAddrInfo,
+}

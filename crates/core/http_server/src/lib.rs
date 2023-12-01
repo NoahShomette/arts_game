@@ -1,18 +1,16 @@
-use std::net::SocketAddr;
-
 use bevy::prelude::Resource;
 use tide::{
-    http::headers::HeaderValue,
+    http::{headers::HeaderValue, Url},
     security::{CorsMiddleware, Origin},
     Server,
 };
 
 /// A resource to hold the Tide Server during plugin construction. Is started at the end of the app plugin cycle
 #[derive(Resource)]
-pub struct TideServerResource(pub Server<()>, pub SocketAddr);
+pub struct TideServerResource(pub Server<()>, pub Url);
 
 impl TideServerResource {
-    pub fn new(addr: SocketAddr) -> Self {
+    pub fn new(addr: Url) -> Self {
         let mut tide = tide::new();
         tide.with(
             CorsMiddleware::new()
@@ -28,6 +26,6 @@ impl TideServerResource {
     }
 }
 
-async fn start_server(tide: Server<()>, address: SocketAddr) -> tide::Result<()> {
+async fn start_server(tide: Server<()>, address: Url) -> tide::Result<()> {
     Ok(tide.listen(address).await?)
 }

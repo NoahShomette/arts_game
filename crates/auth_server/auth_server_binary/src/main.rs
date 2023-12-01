@@ -1,31 +1,29 @@
-use std::{
-    net::{Ipv4Addr, SocketAddr, SocketAddrV4},
-    str::FromStr,
-};
-
 use arts_authentication::ServerLibraryPlugin;
 use arts_core::http_server::TideServerResource;
 use bevy::{prelude::App, MinimalPlugins};
 use clap::Parser;
+use tide::http::url;
 
 #[derive(Parser)]
 struct ServerArgs {
     #[arg(short, long)]
     address: String,
-    #[arg(short, long)]
-    port: u16,
+    #[arg(long)]
+    http_port: u16,
 }
 
 fn main() {
     let cli = ServerArgs::parse();
-    let server_addr = SocketAddr::V4(SocketAddrV4::new(
-        Ipv4Addr::from_str(&cli.address).expect("Invalid IP Address"),
-        cli.port,
-    ));
-    println!("{}", server_addr);
+    let http_server_addr = url::Url::parse(&format!(
+        "http://{}:{}",
+        cli.address.clone(),
+        &cli.http_port.to_string()
+    ))
+    .expect("Invalid address given");
+    println!("{}", http_server_addr);
     let mut app = App::new();
 
-    app.insert_resource(TideServerResource::new(server_addr));
+    app.insert_resource(TideServerResource::new(http_server_addr));
     app.add_plugins(MinimalPlugins);
     // --- All custom plugins should go here
     app.add_plugins(ServerLibraryPlugin);

@@ -1,10 +1,10 @@
 use arts_core::{
-    auth_server::game::{GameId, RequestNewGameRequest, RequestNewGameResponse},
+    auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
     network::HttpRequestMeta,
 };
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use tide::{Endpoint, Request};
+use tide::{Endpoint, Error, Request};
 
 use crate::database::Database;
 
@@ -52,11 +52,15 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
             }
         }
         let tx = connection.transaction()?;
+        let game_addr = match serde_json::to_string(&request.request.game_addr.clone()) {
+            Ok(info) => info,
+            Err(err) => return Err(Error::from_str(500, err)),
+        };
         let _ = tx.execute(
             "insert into game_info (game_id, game_ip, is_open, in_progress, hosting_server_id, server_type) values (?1, ?2, ?3, ?4, ?5, ?6)",
             &[
                 &game_id.to_string(),
-                &request.request.game_ip.to_string(),
+                &game_addr,
                 "1",
                 "1",
                 &request.request.server_id,
@@ -67,7 +71,7 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
     }
     Ok(tide::Response::builder(200)
         .body(
-            serde_json::to_string(&RequestNewGameResponse {
+            serde_json::to_string(&RequestNewGameIdResponse {
                 game_id: GameId { id: game_id },
             })
             .unwrap(),

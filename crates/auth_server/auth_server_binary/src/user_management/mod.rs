@@ -37,10 +37,8 @@ pub fn verify_decode_jwt(
         return Err(Error::from_str(400, "No Authorization Bearer found"));
     };
     let string_at = access_token.to_string();
-    println!("String at: {}", string_at);
     let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1];
     let (access_token, _) = access_token.split_at(access_token.len() - 2);
-    println!("access Token: {}", access_token);
 
     let Ok(claims) = supabase.jwt_valid(access_token) else {
         return Err(Error::from_str(403, "Invalid Access Token"));
