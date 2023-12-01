@@ -1,8 +1,8 @@
 mod network;
 pub mod ui;
 
-use arts_core::authentication::client_authentication::{PasswordLoginInfo, SignInEvent};
-use arts_core::{authentication::client_authentication::AuthClient, TaskPoolRes};
+use core_library::authentication::client_authentication::{PasswordLoginInfo, SignInEvent};
+use core_library::TaskPoolRes;
 use bevy::app::Update;
 use bevy::ecs::event::EventWriter;
 use bevy::{app::Plugin, tasks::TaskPoolBuilder};

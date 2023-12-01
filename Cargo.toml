@@ -15,9 +15,10 @@ codegen-units = 1
 [workspace]
 members = [
     # Core
+    "crates/core/general",
     "crates/core/core_library",
     "crates/core/http_server",
-
+    "crates/core/game_generation",
     # Game server
     "crates/game_server/game_server_binary",
     "crates/game_server/console_parser",

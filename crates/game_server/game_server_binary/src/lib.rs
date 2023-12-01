@@ -1,6 +1,6 @@
 use app_authentication::AuthenticationPlugin;
-use arts_core::TaskPoolRes;
 use bevy::{app::Plugin, tasks::TaskPoolBuilder};
+use core_library::TaskPoolRes;
 use game_runner::GameRunnerPlugin;
 use game_server_connection::GameServerPlugin;
 

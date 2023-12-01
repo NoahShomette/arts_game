@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use arts_core::auth_server::{
+use core_library::auth_server::{
     game::GameId,
     player_data::{PlayerGames, PlayerGamesResponse},
 };
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use tide::{http::Url, Endpoint, Error, Request};
+use tide::{http::Url, Endpoint, Request};
 
 use crate::{authentication::supabase::SupabaseConnection, database::Database};
 

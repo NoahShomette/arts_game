@@ -1,4 +1,3 @@
-use arts_core::{http_server::TideServerResource, network::GameAddrInfo};
 use arts_server::ServerPlugin;
 use bevy::{
     app::App,
@@ -7,6 +6,7 @@ use bevy::{
 };
 use clap::Parser;
 use console_parser::ConsoleParserPlugin;
+use core_library::{http_server::TideServerResource, network::GameAddrInfo};
 
 #[derive(Parser)]
 struct ServerArgs {

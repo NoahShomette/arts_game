@@ -1,4 +1,4 @@
-use arts_core::{
+use core_library::{
     auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
     game_meta::NewGameSettings,
     network::{GameAddrInfo, HttpRequestMeta},
@@ -7,12 +7,15 @@ use bevy_eventwork::async_trait;
 use serde::{Deserialize, Serialize};
 use tide::{http::Url, Endpoint, Error, Request};
 
+use super::new_game_command::{NewGameCommand, NewGameCommandsChannel};
+
 /// A request to start a new game
 pub struct RequestNewGame {
     pub(crate) access_token: String,
     pub(crate) authentication_server_addr: Url,
     pub(crate) self_server_id: String,
     pub(crate) game_ip: GameAddrInfo,
+    pub(crate) channel: NewGameCommandsChannel,
 }
 
 #[async_trait]
@@ -24,6 +27,7 @@ impl Endpoint<()> for RequestNewGame {
             self.authentication_server_addr.clone(),
             self.game_ip.clone(),
             self.self_server_id.clone(),
+            self.channel.clone(),
         )
         .await
     }
@@ -36,6 +40,7 @@ async fn request_new_game(
     auth_server_addr: Url,
     game_ip: GameAddrInfo,
     self_server_id: String,
+    channel: NewGameCommandsChannel,
 ) -> tide::Result {
     let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
     let new_game_id = request_new_game_id(
@@ -45,6 +50,11 @@ async fn request_new_game(
         self_server_id,
     )
     .await?;
+
+    let _ = channel.sender_channel.send(NewGameCommand {
+        new_game_settings: request.request,
+        new_game_id,
+    });
     Ok(tide::Response::builder(200)
         .body(
             serde_json::to_string(&NewGameResponse {

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arts_core::{authentication::client_authentication::Claims, http_server::TideServerResource};
+use core_library::{authentication::client_authentication::Claims, http_server::TideServerResource};
 use bevy::{app::Plugin, ecs::world::Mut};
 use tide::{Error, Request};
 

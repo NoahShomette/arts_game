@@ -1,4 +1,4 @@
-use arts_core::http_server::TideServerResource;
+use core_library::http_server::TideServerResource;
 use bevy::{app::Plugin, ecs::world::Mut};
 
 mod requests;

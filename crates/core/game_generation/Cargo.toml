@@ -1,5 +1,5 @@
 [package]
-name = "console_parser"
+name = "game_generation"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -8,5 +8,4 @@ edition.workspace = true
 
 [dependencies]
 bevy = { workspace = true }
-clap = { version = "4.4.8", features = ["derive"] }
-core_library = { path = "../../core/core_library" }
+general = { path = "../general" }

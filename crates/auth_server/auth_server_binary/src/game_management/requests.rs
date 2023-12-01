@@ -1,4 +1,4 @@
-use arts_core::{
+use core_library::{
     auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
     network::HttpRequestMeta,
 };

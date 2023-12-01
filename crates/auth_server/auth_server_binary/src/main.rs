@@ -1,7 +1,7 @@
 use arts_authentication::ServerLibraryPlugin;
-use arts_core::http_server::TideServerResource;
 use bevy::{prelude::App, MinimalPlugins};
 use clap::Parser;
+use core_library::http_server::TideServerResource;
 use tide::http::url;
 
 #[derive(Parser)]

@@ -1,5 +1,4 @@
 use std::{
-    ffi::OsString,
     io,
     sync::{
         mpsc::{self, Receiver, Sender},
@@ -17,7 +16,7 @@ use bevy::{
 };
 use clap::{Parser, Subcommand};
 
-use arts_core::authentication::client_authentication::{
+use core_library::authentication::client_authentication::{
     PasswordLoginInfo, SignInEvent, SignOutEvent, SignUpEvent,
 };
 

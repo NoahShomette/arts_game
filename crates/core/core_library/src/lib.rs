@@ -1,13 +1,8 @@
-use bevy::{ecs::system::Resource, tasks::TaskPool};
-
-pub mod actions;
-pub mod async_runners;
-pub mod auth_server;
-pub mod authentication;
+pub use general::{
+    actions, async_runners, auth_server, authentication, game_meta, network, TaskPoolRes,
+};
 #[cfg(feature = "http_server_feature")]
 pub use http_server;
-pub mod game_meta;
-pub mod network;
 
-#[derive(Resource)]
-pub struct TaskPoolRes(pub TaskPool);
+#[cfg(feature = "game_generator")]
+pub use game_generation;

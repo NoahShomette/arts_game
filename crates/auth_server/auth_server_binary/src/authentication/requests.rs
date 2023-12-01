@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use arts_core::auth_server::player_data::PlayerGames;
-use arts_core::authentication::client_authentication::PasswordLoginInfo;
-use arts_core::authentication::SignInResponse;
-use arts_core::network::HttpRequestMeta;
+use core_library::auth_server::player_data::PlayerGames;
+use core_library::authentication::client_authentication::PasswordLoginInfo;
+use core_library::authentication::SignInResponse;
+use core_library::network::HttpRequestMeta;
 use bevy::log::info;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};

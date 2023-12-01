@@ -1,4 +1,4 @@
-use bevy::ecs::event::{EventReader, EventWriter};
+use bevy::ecs::event::EventReader;
 use bevy::ecs::schedule::NextState;
 use bevy::ecs::system::{Commands, ResMut, Resource};
 use bevy::log::info;

@@ -3,7 +3,7 @@
 //!
 //! Is also responsible though game_manager::save_manager with saving each game into the server files
 
-use arts_core::auth_server::game::GameId;
+use core_library::auth_server::game::GameId;
 use bevy::{
     app::Plugin,
     ecs::{
@@ -17,6 +17,7 @@ use crate::player_actions::PlayerAction;
 use self::{game_schedule::GameWorldSimulationSchedule, save_manager::SaveManagerPlugin};
 
 pub mod game_schedule;
+mod new_game;
 mod new_game_handler;
 mod save_manager;
 

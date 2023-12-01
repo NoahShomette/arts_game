@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arts_core::http_server::TideServerResource;
+use core_library::http_server::TideServerResource;
 use bevy::{ecs::world::Mut, prelude::Plugin};
 
 use crate::database::Database;

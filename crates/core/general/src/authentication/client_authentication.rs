@@ -12,7 +12,7 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use super::{UserInfo, SignInResponse};
+use super::SignInResponse;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PasswordLoginInfo {

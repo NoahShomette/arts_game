@@ -5,7 +5,7 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
+use core_library::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
 use bevy::prelude::Resource;
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};

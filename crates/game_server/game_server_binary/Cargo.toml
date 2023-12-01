@@ -8,8 +8,9 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-arts_core = { path = "../../core/core_library", features = [
+core_library = { path = "../../core/core_library", features = [
     "http_server_feature",
+    "game_generator",
 ] }
 bevy = { workspace = true }
 bevy_state_curves = { workspace = true }

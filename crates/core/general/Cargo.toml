@@ -1,0 +1,27 @@
+[package]
+name = "general"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
+bevy_state_curves = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# HTTP Client
+ehttp = { workspace = true }
+url = { workspace = true }
+
+# HTTP Networking
+http_server = { path = "../http_server", optional = true }
+tide = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+jsonwebtoken = { workspace = true, optional = true }
+
+# Security
+sha3 = "0.10.8"
+base64ct = { version = "1.6.0", features = ["alloc"] }
