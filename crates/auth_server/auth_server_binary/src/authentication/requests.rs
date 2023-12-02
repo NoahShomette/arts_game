@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
 use core_library::authentication::client_authentication::PasswordLoginInfo;
 use core_library::authentication::SignInResponse;
 use core_library::network::HttpRequestMeta;
-use bevy::log::info;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
@@ -110,4 +110,23 @@ async fn signout(req: Request<()>, supabase: &SupabaseConnection) -> tide::Resul
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())
         .build())
+}
+
+/// Authenticates a user as validly signed in
+pub struct AuthenticateUser {
+    pub(crate) supabase: Arc<SupabaseConnection>,
+}
+
+#[async_trait]
+impl Endpoint<()> for AuthenticateUser {
+    async fn call(&self, req: Request<()>) -> tide::Result {
+        authenticate_user(req, &self.supabase).await
+    }
+}
+
+async fn authenticate_user(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    println!("Received Sign Out Request");
+    // Verify that it is a real user who is validly signed in
+    let _ = verify_decode_jwt(&req, supabase)?;
+    Ok(tide::Response::builder(200).build())
 }

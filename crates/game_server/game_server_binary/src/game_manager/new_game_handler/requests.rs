@@ -1,11 +1,13 @@
+use bevy_eventwork::async_trait;
 use core_library::{
     auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
     game_meta::NewGameSettings,
     network::{GameAddrInfo, HttpRequestMeta},
 };
-use bevy_eventwork::async_trait;
 use serde::{Deserialize, Serialize};
 use tide::{http::Url, Endpoint, Error, Request};
+
+use crate::http_requests::auth_user_request;
 
 use super::new_game_command::{NewGameCommand, NewGameCommandsChannel};
 
@@ -33,7 +35,15 @@ impl Endpoint<()> for RequestNewGame {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct NewGameResponse {
+    pub game_id: GameId,
+    pub game_ip: GameAddrInfo,
+}
+
 /// Handles requests to start a new game
+///
+/// Verifies that the player is valid before it does so
 async fn request_new_game(
     mut req: Request<()>,
     access_token: String,
@@ -43,6 +53,7 @@ async fn request_new_game(
     channel: NewGameCommandsChannel,
 ) -> tide::Result {
     let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
+    auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
     let new_game_id = request_new_game_id(
         access_token,
         auth_server_addr,
@@ -107,10 +118,4 @@ async fn request_new_game_id(
             return Err(Error::from_str(500, err));
         }
     };
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct NewGameResponse {
-    pub game_id: GameId,
-    pub game_ip: GameAddrInfo,
 }

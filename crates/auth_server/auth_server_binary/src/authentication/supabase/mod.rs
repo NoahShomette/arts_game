@@ -5,8 +5,10 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use core_library::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
 use bevy::prelude::Resource;
+use core_library::authentication::client_authentication::{
+    Claims, PasswordLoginInfo, RefreshToken,
+};
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};

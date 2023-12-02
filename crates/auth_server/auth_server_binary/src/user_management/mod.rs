@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
-use core_library::{authentication::client_authentication::Claims, http_server::TideServerResource};
 use bevy::{app::Plugin, ecs::world::Mut};
+use core_library::{
+    authentication::client_authentication::Claims, http_server::TideServerResource,
+};
 use tide::{Error, Request};
 
 use crate::{authentication::supabase::SupabaseConnection, database::Database};

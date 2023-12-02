@@ -9,3 +9,4 @@ edition.workspace = true
 [dependencies]
 bevy = { workspace = true }
 general = { path = "../general" }
+bevy_state_curves = { workspace = true }

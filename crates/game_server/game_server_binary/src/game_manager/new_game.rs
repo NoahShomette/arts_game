@@ -1,10 +1,6 @@
 //! System that generates a new game
 
-use bevy::ecs::{
-    entity::Entity,
-    system::{Query, Resource, SystemState},
-    world::World,
-};
+use bevy::ecs::world::World;
 use core_library::{
     auth_server::game::GameId, game_generation::create_game_world, game_meta::NewGameSettings,
 };

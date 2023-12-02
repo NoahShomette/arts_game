@@ -1,11 +1,11 @@
 mod network;
 pub mod ui;
 
-use core_library::authentication::client_authentication::{PasswordLoginInfo, SignInEvent};
-use core_library::TaskPoolRes;
 use bevy::app::Update;
 use bevy::ecs::event::EventWriter;
 use bevy::{app::Plugin, tasks::TaskPoolBuilder};
+use core_library::authentication::client_authentication::{PasswordLoginInfo, SignInEvent};
+use core_library::TaskPoolRes;
 use network::NetworkPlugin;
 
 pub struct ClientPlugin;

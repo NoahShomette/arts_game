@@ -1,5 +1,5 @@
-use core_library::http_server::TideServerResource;
 use bevy::{app::Plugin, ecs::world::Mut};
+use core_library::http_server::TideServerResource;
 
 mod requests;
 

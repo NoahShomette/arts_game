@@ -3,7 +3,6 @@
 //!
 //! Is also responsible though game_manager::save_manager with saving each game into the server files
 
-use core_library::auth_server::game::GameId;
 use bevy::{
     app::Plugin,
     ecs::{
@@ -11,6 +10,7 @@ use bevy::{
     },
     utils::HashMap,
 };
+use core_library::auth_server::game::GameId;
 
 use crate::player_actions::PlayerAction;
 

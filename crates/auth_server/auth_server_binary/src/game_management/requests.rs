@@ -1,9 +1,9 @@
+use async_trait::async_trait;
+use bevy::utils::Uuid;
 use core_library::{
     auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
     network::HttpRequestMeta,
 };
-use async_trait::async_trait;
-use bevy::utils::Uuid;
 use tide::{Endpoint, Error, Request};
 
 use crate::database::Database;

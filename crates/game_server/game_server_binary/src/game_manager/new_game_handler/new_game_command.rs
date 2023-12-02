@@ -3,10 +3,10 @@ use std::sync::{
     Arc, Mutex,
 };
 
+use bevy::ecs::system::{Command, Resource};
 use core_library::{auth_server::game::GameId, game_meta::NewGameSettings};
-use bevy::ecs::system::{Command, Resource, RunSystemOnce};
 
-use crate::game_manager::new_game::{self, generate_new_game};
+use crate::game_manager::new_game::generate_new_game;
 
 #[derive(Resource, Clone)]
 pub struct NewGameCommandsChannel {
