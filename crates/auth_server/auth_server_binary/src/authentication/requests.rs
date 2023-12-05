@@ -5,7 +5,7 @@ use core_library::auth_server::player_data::PlayerGames;
 use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
 use core_library::authentication::SignInResponse;
 use core_library::network::HttpRequestMeta;
-use core_library::player::PlayerId;
+use core_library::player::AccountId;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
@@ -48,6 +48,10 @@ impl Endpoint<()> for SignIn {
     }
 }
 
+struct QueryResultRNG {
+    _account_id: String,
+}
+
 async fn sign_in(
     mut req: Request<()>,
     supabase: &SupabaseConnection,
@@ -58,35 +62,72 @@ async fn sign_in(
     let is_player = request.request.is_player();
     let result = supabase.sign_in_password(request.request).await?;
     if let Ok(mut connection) = database.connection.lock() {
-        let tx = connection.transaction()?;
         if let Some(result_text) = result.text() {
             let v: SignInResponse = serde_json::from_str(result_text)?;
             let _user_id = v.user.id.clone();
-
-            let user_id = serde_json::to_string(&PlayerId { id: _user_id })?;
+            let account_id = serde_json::to_string(&AccountId { id: _user_id })?;
+            let tx = connection.transaction()?;
 
             match is_player {
                 true => {
-                    let _ = tx.execute(
-                        "insert into player_data (player_id, player_games) values (?1, ?2)",
-                        &[
-                            &user_id,
-                            &serde_json::to_string(&PlayerGames {
-                                current_games: vec![],
+                    {
+                        // Check if there is already a player account saved
+                        let mut stmt = tx.prepare(&format!(
+                            "SELECT player_id FROM player_data where player_id = {}",
+                            account_id
+                        ))?;
+
+                        let server = stmt.query_map((), |row| {
+                            Ok(QueryResultRNG {
+                                _account_id: row.get(0)?,
                             })
-                            .unwrap(),
-                        ],
-                    );
+                        })?;
+
+                        for server in server {
+                            // If there are no accounts then save as a new one
+                            if server.is_err() {
+                                let _ = tx.execute(
+                                    "insert into player_data (player_id, player_games) values (?1, ?2)",
+                                    &[
+                                        &account_id,
+                                        &serde_json::to_string(&PlayerGames {
+                                            current_games: vec![],
+                                        })
+                                        .unwrap(),
+                                    ],
+                                );
+                            }
+                        }
+                    }
                 }
                 false => {
-                    let _ = tx.execute(
-                        "insert into server_data (server_id, server_type) values (?1, ?2)",
-                        &[&_user_id.to_string(), &serde_json::to_string(&0).unwrap()],
-                    );
+                    {
+                        // Check if there is already a player account saved
+                        let mut stmt = tx.prepare(&format!(
+                            "SELECT server_id FROM server_data where server_id = {}",
+                            account_id
+                        ))?;
+
+                        let server = stmt.query_map((), |row| {
+                            Ok(QueryResultRNG {
+                                _account_id: row.get(0)?,
+                            })
+                        })?;
+
+                        for server in server {
+                            // If there are no accounts then save as a new one
+                            if server.is_err() {
+                                let _ = tx.execute(
+                                    "insert into server_data (server_id, server_type) values (?1, ?2)",
+                                    &[&account_id, &serde_json::to_string(&0).unwrap()],
+                                );
+                            }
+                        }
+                    }
                 }
             }
+            tx.commit()?;
         }
-        tx.commit()?;
     }
     Ok(tide::Response::builder(200)
         .body(result.text().unwrap())

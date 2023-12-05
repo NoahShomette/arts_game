@@ -24,7 +24,7 @@ use core_library::{
     authentication::AppAuthenticationState,
     game_meta::GameId,
     network::{ws_game_server::ClientInitialConnect, GameAddrInfo},
-    player::PlayerId,
+    player::AccountId,
 };
 
 use crate::{
@@ -70,19 +70,19 @@ impl Plugin for GameServerPlugin {
 /// Maps connection_ids to their player ids
 #[derive(Resource, Default)]
 pub struct ConnectionIdPlayerIdMapping {
-    pub map: HashMap<ConnectionId, Option<PlayerId>>,
+    pub map: HashMap<ConnectionId, Option<AccountId>>,
 }
 
 /// Maps player ids to a game id, if the player is in that game
 #[derive(Resource, Default)]
 pub struct PlayerIdGameIdMapping {
-    pub map: HashMap<PlayerId, Option<GameId>>,
+    pub map: HashMap<AccountId, Option<GameId>>,
 }
 
 /// Component inserted on a Game Entity that holds what players are currently connected to it if there are any
 #[derive(Component)]
 pub struct ConnectedPlayers {
-    pub players: Vec<PlayerId>,
+    pub players: Vec<AccountId>,
 }
 
 impl ConnectedPlayers {
@@ -92,24 +92,24 @@ impl ConnectedPlayers {
     }
 
     /// Creates a new Connected Players with the given id in it
-    pub fn new_with_id(player_id: PlayerId) -> ConnectedPlayers {
+    pub fn new_with_id(player_id: AccountId) -> ConnectedPlayers {
         ConnectedPlayers {
             players: vec![player_id],
         }
     }
 
     /// Inserts a Player Id into the list
-    pub fn insert(&mut self, player_id: PlayerId) {
+    pub fn insert(&mut self, player_id: AccountId) {
         self.players.push(player_id)
     }
 
     /// Removes all instances of a player id from the list
-    pub fn remove(&mut self, player_id: &PlayerId) {
+    pub fn remove(&mut self, player_id: &AccountId) {
         self.players.retain(|x| x != player_id);
     }
 
     /// Checks if the given player id is present
-    pub fn contains(&self, player_id: &PlayerId) -> bool {
+    pub fn contains(&self, player_id: &AccountId) -> bool {
         self.players.contains(player_id)
     }
 }

@@ -11,7 +11,7 @@ use bevy_eventwork::{AppNetworkMessage, NetworkData};
 use bevy_eventwork_mod_websockets::WebSocketProvider;
 use core_library::{
     authentication::AuthenticationServerInfo, game_meta::GameId,
-    network::ws_game_server::ClientConnectToGame, player::PlayerId,
+    network::ws_game_server::ClientConnectToGame, player::AccountId,
 };
 
 use crate::{
@@ -46,12 +46,12 @@ impl Plugin for ClientGameConnectionPlugin {
 #[derive(Event)]
 pub struct AddConnectedPlayerToGameEvent {
     pub game_id: GameId,
-    pub player_id: PlayerId,
+    pub player_id: AccountId,
 }
 
 #[derive(Event)]
 pub struct RemoveConnectedPlayerFromGameEvent {
-    pub player_id: PlayerId,
+    pub player_id: AccountId,
 }
 
 /// Maps a connection_id and player id to a specific game.

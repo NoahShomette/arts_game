@@ -1,7 +1,7 @@
 use bevy_eventwork::NetworkMessage;
 use serde::{Deserialize, Serialize};
 
-use crate::{game_meta::GameId, player::PlayerId};
+use crate::{game_meta::GameId, player::AccountId};
 
 /// Client message sent from the client to the game server to connect to a specific game
 ///
@@ -10,7 +10,7 @@ use crate::{game_meta::GameId, player::PlayerId};
 pub struct ClientConnectToGame {
     pub game_id: GameId,
     pub access_token: String,
-    pub player_id: PlayerId,
+    pub player_id: AccountId,
 }
 
 impl NetworkMessage for ClientConnectToGame {
@@ -23,7 +23,7 @@ impl NetworkMessage for ClientConnectToGame {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ClientInitialConnect {
     pub access_token: String,
-    pub player_id: PlayerId,
+    pub player_id: AccountId,
 }
 
 impl NetworkMessage for ClientInitialConnect {
