@@ -15,8 +15,8 @@ use core_library::game_meta::GameId;
 use crate::player_actions::PlayerAction;
 
 use self::{
-    game_schedule::GameWorldSimulationSchedule, new_game_http::NewGameHandlerPlugin,
-    save_manager::SaveManagerPlugin,
+    client_game_connection::ClientGameConnectionPlugin, game_schedule::GameWorldSimulationSchedule,
+    new_game_http::NewGameHandlerPlugin, save_manager::SaveManagerPlugin,
 };
 
 pub mod client_game_connection;
@@ -34,7 +34,11 @@ impl Plugin for GameManagerPlugin {
             map: HashMap::new(),
         });
         app.add_schedule(Schedule::new(GameWorldSimulationSchedule));
-        app.add_plugins((SaveManagerPlugin, NewGameHandlerPlugin));
+        app.add_plugins((
+            SaveManagerPlugin,
+            NewGameHandlerPlugin,
+            ClientGameConnectionPlugin,
+        ));
     }
 }
 

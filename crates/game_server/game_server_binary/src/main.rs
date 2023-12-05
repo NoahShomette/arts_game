@@ -34,13 +34,5 @@ fn main() {
     app.add_plugins((MinimalPlugins, bevy::log::LogPlugin::default()));
     app.add_plugins(ServerPlugin);
     app.add_plugins(ConsoleParserPlugin);
-
-    // Must be the last items called starting the server
-    let tide = app
-        .world
-        .remove_resource::<TideServerResource>()
-        .expect("TideServerResource expected to start server");
-    tide.start_server();
-
     app.run();
 }
