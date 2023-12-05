@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use url::Url;
 
-use crate::auth_server::game::GameId;
+use crate::game_meta::GameId;
 
 #[derive(Serialize, Deserialize)]
 pub struct PlayerGames {

@@ -6,7 +6,7 @@ use core_library::http_server::TideServerResource;
 use crate::database::Database;
 
 use self::{
-    requests::{AuthenticateUser, SignIn, SignOut, SignUp},
+    requests::{AuthenticateUser, RefreshTokenEndpoint, SignIn, SignOut, SignUp},
     supabase::SupabaseConnection,
 };
 
@@ -29,6 +29,9 @@ impl Plugin for AuthenticationPlugin {
                     supabase: Arc::new(supabase.clone()),
                 });
                 tide.0.at("/auth/sign_up").post(SignUp {
+                    supabase: Arc::new(supabase.clone()),
+                });
+                tide.0.at("/auth/refresh_token").post(RefreshTokenEndpoint {
                     supabase: Arc::new(supabase.clone()),
                 });
                 tide.0.at("/auth/authenticate_user").post(AuthenticateUser {

@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 use bevy::utils::Uuid;
 use core_library::{
-    auth_server::game::{GameId, RequestNewGameIdResponse, RequestNewGameRequest},
+    auth_server::game::{RequestNewGameIdResponse, RequestNewGameRequest},
+    game_meta::GameId,
     network::HttpRequestMeta,
 };
 use tide::{Endpoint, Error, Request};
@@ -63,7 +64,7 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
                 &game_addr,
                 "1",
                 "1",
-                &request.request.server_id,
+                &request.request.server_id.to_string(),
                 &server_type.to_string(),
             ],
         );

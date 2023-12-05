@@ -2,7 +2,7 @@ use bevy::{ecs::world::World, math::Vec2, render::color::Color};
 use bevy_state_curves::prelude::{CurveTrait, SteppedCurve};
 use general::{
     game_meta::NewGameSettings,
-    map::outpost::{OutpostColor, OutpostPosition},
+    objects::{ObjectColor, ObjectPosition},
 };
 
 /// Function responsible for generating the new game world with the correct setup. This *DOES NOT* simulate the world.
@@ -10,18 +10,18 @@ use general::{
 pub fn create_game_world(settings: &NewGameSettings) -> World {
     let mut world = World::new();
     for i in 0..*settings.outpost_count.outpost_count() {
-        let mut pos = SteppedCurve::<OutpostPosition>::new();
-        let mut color = SteppedCurve::<OutpostColor>::new();
+        let mut pos = SteppedCurve::<ObjectPosition>::new();
+        let mut color = SteppedCurve::<ObjectColor>::new();
 
         pos.insert_keyframe(
             0,
-            OutpostPosition {
+            ObjectPosition {
                 position: Vec2::new(i as f32, i as f32),
             },
         );
         color.insert_keyframe(
             0,
-            OutpostColor {
+            ObjectColor {
                 color: Color::rgb_u8(i as u8, i as u8, i as u8),
             },
         );

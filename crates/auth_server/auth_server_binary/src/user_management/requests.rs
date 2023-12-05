@@ -2,10 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use core_library::auth_server::{
-    game::GameId,
-    player_data::{PlayerGames, PlayerGamesResponse},
-};
+use core_library::{auth_server::player_data::{PlayerGames, PlayerGamesResponse}, game_meta::GameId};
 use tide::{http::Url, Endpoint, Request};
 
 use crate::{authentication::supabase::SupabaseConnection, database::Database};

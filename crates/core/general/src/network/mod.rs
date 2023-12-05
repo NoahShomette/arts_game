@@ -2,6 +2,8 @@ use bevy::ecs::system::Resource;
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+pub mod ws_game_server;
+
 /// A wrapper that contains meta information that clients/game_server/Auth_server can sends to any of the Servers that run http servers
 /// in order to correctly make and process requests
 ///

@@ -1,12 +1,7 @@
 use bevy::utils::Uuid;
 use serde::{Deserialize, Serialize};
 
-use crate::network::GameAddrInfo;
-
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq)]
-pub struct GameId {
-    pub id: Uuid,
-}
+use crate::{game_meta::GameId, network::GameAddrInfo};
 
 // ------------ HTTP Requests
 
@@ -20,7 +15,7 @@ pub struct GameId {
 #[derive(Serialize, Deserialize)]
 pub struct RequestNewGameRequest {
     /// The user_id from authentication.
-    pub server_id: String,
+    pub server_id: Uuid,
     pub game_addr: GameAddrInfo,
 }
 

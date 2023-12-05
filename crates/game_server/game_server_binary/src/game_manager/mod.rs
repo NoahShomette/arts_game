@@ -10,23 +10,31 @@ use bevy::{
     },
     utils::HashMap,
 };
-use core_library::auth_server::game::GameId;
+use core_library::game_meta::GameId;
 
 use crate::player_actions::PlayerAction;
 
-use self::{game_schedule::GameWorldSimulationSchedule, save_manager::SaveManagerPlugin};
+use self::{
+    game_schedule::GameWorldSimulationSchedule, new_game_http::NewGameHandlerPlugin,
+    save_manager::SaveManagerPlugin,
+};
 
+pub mod client_game_connection;
 pub mod game_schedule;
+mod manage_players_in_games;
 mod new_game;
-mod new_game_handler;
+mod new_game_http;
 mod save_manager;
 
 pub struct GameManagerPlugin;
 
 impl Plugin for GameManagerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(GameIdMapping {
+            map: HashMap::new(),
+        });
         app.add_schedule(Schedule::new(GameWorldSimulationSchedule));
-        app.add_plugins(SaveManagerPlugin);
+        app.add_plugins((SaveManagerPlugin, NewGameHandlerPlugin));
     }
 }
 
@@ -35,7 +43,6 @@ impl Plugin for GameManagerPlugin {
 pub struct GameIdMapping {
     pub map: HashMap<GameId, Entity>,
 }
-
 /// An instance of a game
 #[derive(Component)]
 pub struct GameInstance {

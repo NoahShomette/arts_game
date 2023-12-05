@@ -2,9 +2,10 @@ use std::sync::Arc;
 
 use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
-use core_library::authentication::client_authentication::PasswordLoginInfo;
+use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
 use core_library::authentication::SignInResponse;
 use core_library::network::HttpRequestMeta;
+use core_library::player::PlayerId;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
@@ -61,12 +62,15 @@ async fn sign_in(
         if let Some(result_text) = result.text() {
             let v: SignInResponse = serde_json::from_str(result_text)?;
             let _user_id = v.user.id.clone();
+
+            let user_id = serde_json::to_string(&PlayerId { id: _user_id })?;
+
             match is_player {
                 true => {
                     let _ = tx.execute(
                         "insert into player_data (player_id, player_games) values (?1, ?2)",
                         &[
-                            &_user_id,
+                            &user_id,
                             &serde_json::to_string(&PlayerGames {
                                 current_games: vec![],
                             })
@@ -77,7 +81,7 @@ async fn sign_in(
                 false => {
                     let _ = tx.execute(
                         "insert into server_data (server_id, server_type) values (?1, ?2)",
-                        &[&_user_id, &serde_json::to_string(&0).unwrap()],
+                        &[&_user_id.to_string(), &serde_json::to_string(&0).unwrap()],
                     );
                 }
             }
@@ -129,4 +133,30 @@ async fn authenticate_user(req: Request<()>, supabase: &SupabaseConnection) -> t
     // Verify that it is a real user who is validly signed in
     let _ = verify_decode_jwt(&req, supabase)?;
     Ok(tide::Response::builder(200).build())
+}
+
+/// Refreshes a users AccessToken.
+pub struct RefreshTokenEndpoint {
+    pub(crate) supabase: Arc<SupabaseConnection>,
+}
+
+#[async_trait]
+impl Endpoint<()> for RefreshTokenEndpoint {
+    async fn call(&self, req: Request<()>) -> tide::Result {
+        refresh_user(req, &self.supabase).await
+    }
+}
+
+async fn refresh_user(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
+    println!("Received Sign Out Request");
+    // Verify that it is a real user who is validly signed in
+    let _ = verify_decode_jwt(&req, supabase)?;
+    let request: HttpRequestMeta<RefreshTokenRequest> = req.body_json().await?;
+
+    let result = supabase
+        .refresh_token(request.request.refresh_token)
+        .await?;
+    Ok(tide::Response::builder(200)
+        .body(result.text().unwrap())
+        .build())
 }

@@ -11,7 +11,7 @@ impl Plugin for DatabaseManagerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(Database {
             connection: Arc::new(Mutex::new(
-                Connection::open("auth_database.db").expect("No Database found"),
+                Connection::open("databases/auth_database.db").expect("No Database found"),
             )),
         });
     }

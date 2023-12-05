@@ -1,7 +1,12 @@
 //! Responsible for meta information on games like settings and the like
 
-use bevy::math::Vec2;
+use bevy::{math::Vec2, utils::Uuid};
 use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
+pub struct GameId {
+    pub id: Uuid,
+}
 
 /// Meta settings on a game
 pub struct GameSettings {

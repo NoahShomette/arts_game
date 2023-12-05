@@ -1,4 +1,5 @@
 use bevy::ecs::schedule::common_conditions::in_state;
+use bevy::utils::Uuid;
 use bevy::{
     app::{Plugin, Update},
     ecs::{
@@ -80,7 +81,7 @@ pub struct SignInResponse {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserInfo {
-    pub id: String,
+    pub id: Uuid,
     pub aud: String,
     pub role: String,
     pub email: String,

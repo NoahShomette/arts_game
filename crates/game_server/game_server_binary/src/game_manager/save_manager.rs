@@ -11,7 +11,7 @@ impl Plugin for SaveManagerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(DatabaseConnection {
             connection: Arc::new(Mutex::new(
-                Connection::open("game_server_database.db").expect("No Database found"),
+                Connection::open("databases/game_server_database.db").expect("No Database found"),
             )),
         });
     }

@@ -10,9 +10,8 @@ use core_library::{
     network::GameAddrInfo,
 };
 
-use self::{new_game_command::NewGameCommandsChannel, requests::RequestNewGame};
+use self::requests::{NewGameCommandsChannel, RequestNewGame};
 
-pub mod new_game_command;
 pub mod requests;
 
 pub struct NewGameHandlerPlugin;

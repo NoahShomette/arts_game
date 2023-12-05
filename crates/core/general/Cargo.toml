@@ -12,6 +12,9 @@ bevy_state_curves = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# Ws Networking
+bevy_eventwork = { workspace = true }
+
 # HTTP Client
 ehttp = { workspace = true }
 url = { workspace = true }

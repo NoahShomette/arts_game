@@ -44,6 +44,11 @@ impl PasswordLoginInfo {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub struct RefreshTokenRequest {
+    pub refresh_token: RefreshToken,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct RefreshToken {
     refresh_token: String,
 }

@@ -1,13 +1,16 @@
+use app::GameAppPlugin;
 use app_authentication::AuthenticationPlugin;
 use bevy::{app::Plugin, tasks::TaskPoolBuilder};
+use client_game_server_network::GameServerPlugin;
 use core_library::TaskPoolRes;
+use game_manager::GameManagerPlugin;
 use game_runner::GameRunnerPlugin;
-use game_server_connection::GameServerPlugin;
 
+mod app;
 mod app_authentication;
+mod client_game_server_network;
 mod game_manager;
 mod game_runner;
-mod game_server_connection;
 mod http_requests;
 mod player_actions;
 
@@ -19,6 +22,11 @@ impl Plugin for ServerPlugin {
 
         // Game Server Plugin must be inserted first so that the GameWorldSimulationSchedule is available to all other plugins
         app.add_plugins(GameServerPlugin);
-        app.add_plugins((AuthenticationPlugin, GameRunnerPlugin));
+        app.add_plugins((
+            GameAppPlugin,
+            AuthenticationPlugin,
+            GameRunnerPlugin,
+            GameManagerPlugin,
+        ));
     }
 }
