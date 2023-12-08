@@ -1,3 +1,7 @@
+use core::fmt;
+use std::marker::PhantomData;
+use std::str::FromStr;
+
 use bevy::ecs::schedule::common_conditions::in_state;
 use bevy::utils::Uuid;
 use bevy::{
@@ -7,7 +11,8 @@ use bevy::{
         system::Resource,
     },
 };
-use serde::{Deserialize, Serialize};
+use serde::de::{self, Visitor};
+use serde::{Deserialize, Deserializer, Serialize};
 use url::Url;
 
 use self::client_authentication::AuthClient;
@@ -81,6 +86,7 @@ pub struct SignInResponse {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct UserInfo {
+    #[serde(deserialize_with = "into_uuid")]
     pub id: Uuid,
     pub aud: String,
     pub role: String,
@@ -119,4 +125,12 @@ pub struct Identity {
 pub struct IdentityData {
     pub email: String,
     pub sub: String,
+}
+
+fn into_uuid<'de, D>(deserializer: D) -> Result<Uuid, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = Deserialize::deserialize(deserializer)?;
+    Uuid::parse_str(s).map_err(|_| de::Error::custom("Error parsing into UUID"))
 }

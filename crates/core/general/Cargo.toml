@@ -12,6 +12,10 @@ bevy_state_curves = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# general
+uuid = { workspace = true }
+
+
 # Ws Networking
 bevy_eventwork = { workspace = true }
 

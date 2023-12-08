@@ -48,10 +48,6 @@ impl Endpoint<()> for SignIn {
     }
 }
 
-struct QueryResultRNG {
-    _account_id: String,
-}
-
 async fn sign_in(
     mut req: Request<()>,
     supabase: &SupabaseConnection,
@@ -72,51 +68,34 @@ async fn sign_in(
                 true => {
                     {
                         // Check if there is already a player account saved
-                        let mut stmt = tx.prepare(&format!(
+                        match tx.prepare(&format!(
                             "SELECT player_id FROM player_data where player_id = {}",
                             account_id
-                        ))?;
-
-                        let server = stmt.query_map((), |row| {
-                            Ok(QueryResultRNG {
-                                _account_id: row.get(0)?,
-                            })
-                        })?;
-
-                        for server in server {
-                            // If there are no accounts then save as a new one
-                            if server.is_err() {
-                                let _ = tx.execute(
-                                    "insert into player_data (player_id, player_games) values (?1, ?2)",
-                                    &[
-                                        &account_id,
-                                        &serde_json::to_string(&PlayerGames {
-                                            current_games: vec![],
-                                        })
-                                        .unwrap(),
-                                    ],
-                                );
-                            }
+                        )){
+                            Ok(_) => {},
+                            Err(_) => {let _ = tx.execute(
+                                "insert into player_data (player_id, player_games) values (?1, ?2)",
+                                &[
+                                    &account_id,
+                                    &serde_json::to_string(&PlayerGames {
+                                        current_games: vec![],
+                                    })
+                                    .unwrap(),
+                                ],
+                            );},
                         }
                     }
                 }
                 false => {
                     {
+                        match 
                         // Check if there is already a player account saved
-                        let mut stmt = tx.prepare(&format!(
+                        tx.prepare(&format!(
                             "SELECT server_id FROM server_data where server_id = {}",
                             account_id
-                        ))?;
-
-                        let server = stmt.query_map((), |row| {
-                            Ok(QueryResultRNG {
-                                _account_id: row.get(0)?,
-                            })
-                        })?;
-
-                        for server in server {
-                            // If there are no accounts then save as a new one
-                            if server.is_err() {
+                        )){
+                            Ok(_) => {},
+                            Err(_) => {
                                 let _ = tx.execute(
                                     "insert into server_data (server_id, server_type) values (?1, ?2)",
                                     &[&account_id, &serde_json::to_string(&0).unwrap()],

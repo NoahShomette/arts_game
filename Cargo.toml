@@ -53,4 +53,4 @@ jsonwebtoken = { version = "9.1.0" }
 # Game
 bevy_eventwork = { git = "https://github.com/NoahShomette/bevy_eventwork.git", branch = "wasm_core_features", default-features = false }
 bevy_eventwork_mod_websockets = { git = "https://github.com/NoahShomette/bevy_eventwork_mod_websockets.git" }
-Uuid = { version = "1.5.0" }
+uuid = { version = "1.6.1" }
