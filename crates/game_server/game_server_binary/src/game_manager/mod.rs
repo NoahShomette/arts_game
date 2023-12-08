@@ -16,7 +16,7 @@ use crate::player_actions::PlayerAction;
 
 use self::{
     client_game_connection::ClientGameConnectionPlugin, game_schedule::GameWorldSimulationSchedule,
-    new_game_http::NewGameHandlerPlugin, save_manager::SaveManagerPlugin,
+    new_game_http::NewGameHandlerPlugin, game_database::SaveManagerPlugin,
 };
 
 pub mod client_game_connection;
@@ -24,7 +24,7 @@ pub mod game_schedule;
 mod manage_players_in_games;
 mod new_game;
 mod new_game_http;
-mod save_manager;
+mod game_database;
 
 pub struct GameManagerPlugin;
 

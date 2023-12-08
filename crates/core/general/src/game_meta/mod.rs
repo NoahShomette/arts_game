@@ -1,7 +1,13 @@
 //! Responsible for meta information on games like settings and the like
 
-use bevy::{math::Vec2, utils::Uuid};
+use bevy::{
+    ecs::{component::Component, system::Resource},
+    math::Vec2,
+    utils::Uuid,
+};
 use serde::{Deserialize, Serialize};
+
+use crate::auth_server::AccountId;
 
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 pub struct GameId {
@@ -69,5 +75,39 @@ impl OutpostCount {
             OutpostCount::Large => &75,
             OutpostCount::Custom { outpost_count } => outpost_count,
         }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Component)]
+pub struct GamePlayers {
+    pub players: Vec<AccountId>,
+}
+
+impl GamePlayers {
+    /// Creates a new Connected Players
+    pub fn new() -> GamePlayers {
+        GamePlayers { players: vec![] }
+    }
+
+    /// Creates a new Connected Players with the given id in it
+    pub fn new_with_id(player_id: AccountId) -> GamePlayers {
+        GamePlayers {
+            players: vec![player_id],
+        }
+    }
+
+    /// Inserts a Player Id into the list
+    pub fn insert(&mut self, player_id: AccountId) {
+        self.players.push(player_id)
+    }
+
+    /// Removes all instances of a player id from the list
+    pub fn remove(&mut self, player_id: &AccountId) {
+        self.players.retain(|x| x != player_id);
+    }
+
+    /// Checks if the given player id is present
+    pub fn contains(&self, player_id: &AccountId) -> bool {
+        self.players.contains(player_id)
     }
 }

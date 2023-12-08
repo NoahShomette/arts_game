@@ -1,7 +1,7 @@
 use bevy_eventwork::NetworkMessage;
 use serde::{Deserialize, Serialize};
 
-use crate::{game_meta::GameId, player::AccountId};
+use crate::{auth_server::AccountId, game_meta::GameId};
 
 /// Client message sent from the client to the game server to connect to a specific game
 ///

@@ -1,5 +1,5 @@
 pub use general::{
-    actions, async_runners, auth_server, authentication, game_meta, network, player, TaskPoolRes,
+    actions, async_runners, auth_server, authentication, game_meta, network, player, TaskPoolRes, AsyncChannel
 };
 #[cfg(feature = "http_server_feature")]
 pub use http_server;

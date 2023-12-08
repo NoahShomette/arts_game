@@ -1,13 +1,13 @@
 //! System that generates a new game
 
-use bevy::ecs::{entity::Entity, world::World};
+use bevy::ecs::{entity::Entity, world::{World, Mut}};
 use core_library::{
     game_generation::create_game_world, game_meta::GameId, game_meta::NewGameSettings,
 };
 
 use bevy::ecs::system::Command;
 
-use super::GameInstance;
+use super::{game_database::DatabaseConnection, GameInstance};
 
 /// Fn which generates a new game world, spawning it, and setting its initial state to the correct set and then returns the id of the game world's entity
 pub fn generate_new_game(
@@ -42,5 +42,9 @@ pub struct NewGameCommand {
 impl Command for NewGameCommand {
     fn apply(self, world: &mut bevy::prelude::World) {
         generate_new_game(world, self.new_game_settings, self.new_game_id);
+
+        world.resource_scope(|_world: &mut World, database: Mut<DatabaseConnection>| {
+
+        });
     }
 }

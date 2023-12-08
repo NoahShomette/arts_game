@@ -4,13 +4,14 @@ use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
 use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
 use core_library::authentication::SignInResponse;
+use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
-use core_library::player::AccountId;
+use core_library::auth_server::AccountId;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
 use crate::database::Database;
-use crate::user_management::{request_access_token, verify_decode_jwt};
+use crate::user_management::verify_decode_jwt;
 
 use super::supabase::SupabaseConnection;
 
@@ -89,7 +90,7 @@ async fn sign_in(
                 false => {
                     {
                         match 
-                        // Check if there is already a player account saved
+                        // Check if there is already a server account saved
                         tx.prepare(&format!(
                             "SELECT server_id FROM server_data where server_id = {}",
                             account_id

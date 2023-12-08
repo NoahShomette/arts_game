@@ -18,7 +18,7 @@ impl Plugin for SaveManagerPlugin {
 }
 
 /// Stores the active connection to the database used to save games
-#[derive(Resource)]
-struct DatabaseConnection {
+#[derive(Resource, Clone)]
+pub struct DatabaseConnection {
     connection: Arc<Mutex<rusqlite::Connection>>,
 }

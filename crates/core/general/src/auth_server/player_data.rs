@@ -33,5 +33,6 @@ pub struct PlayerGamesRequest {
 /// Authentication Server
 #[derive(Serialize, Deserialize)]
 pub struct PlayerGamesResponse {
+    /// Vec of GameId, Server URL, Server Type
     pub player_games: Vec<(GameId, Url, i32)>,
 }

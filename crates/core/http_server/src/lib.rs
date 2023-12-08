@@ -2,7 +2,7 @@ use bevy::prelude::Resource;
 use tide::{
     http::{headers::HeaderValue, Url},
     security::{CorsMiddleware, Origin},
-    Server,
+    Error, Request, Server,
 };
 
 /// A resource to hold the Tide Server during plugin construction. Is started at the end of the app plugin cycle
@@ -28,4 +28,12 @@ impl TideServerResource {
 
 async fn start_server(tide: Server<()>, address: Url) -> tide::Result<()> {
     Ok(tide.listen(address).await?)
+}
+
+pub fn request_access_token(req: &Request<()>) -> Result<String, Error> {
+    let Some(access_token) = req.header("authorization") else {
+        return Err(Error::from_str(400, "No Authorization Bearer found"));
+    };
+    let string_at = access_token.to_string();
+    Ok(string_at.split_whitespace().collect::<Vec<&str>>()[1].to_string())
 }

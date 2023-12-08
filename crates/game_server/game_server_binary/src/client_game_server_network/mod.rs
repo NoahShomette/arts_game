@@ -21,10 +21,10 @@ use bevy_eventwork::{
 };
 use bevy_eventwork_mod_websockets::{NetworkSettings, WebSocketProvider};
 use core_library::{
+    auth_server::AccountId,
     authentication::AppAuthenticationState,
     game_meta::GameId,
     network::{ws_game_server::ClientInitialConnect, GameAddrInfo},
-    player::AccountId,
 };
 
 use crate::{
@@ -81,19 +81,19 @@ pub struct PlayerIdGameIdMapping {
 
 /// Component inserted on a Game Entity that holds what players are currently connected to it if there are any
 #[derive(Component)]
-pub struct ConnectedPlayers {
+pub struct CurrentlyConnectedPlayers {
     pub players: Vec<AccountId>,
 }
 
-impl ConnectedPlayers {
+impl CurrentlyConnectedPlayers {
     /// Creates a new Connected Players
-    pub fn new() -> ConnectedPlayers {
-        ConnectedPlayers { players: vec![] }
+    pub fn new() -> CurrentlyConnectedPlayers {
+        CurrentlyConnectedPlayers { players: vec![] }
     }
 
     /// Creates a new Connected Players with the given id in it
-    pub fn new_with_id(player_id: AccountId) -> ConnectedPlayers {
-        ConnectedPlayers {
+    pub fn new_with_id(player_id: AccountId) -> CurrentlyConnectedPlayers {
+        CurrentlyConnectedPlayers {
             players: vec![player_id],
         }
     }

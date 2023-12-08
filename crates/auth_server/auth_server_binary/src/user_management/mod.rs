@@ -47,11 +47,3 @@ pub fn verify_decode_jwt(
     };
     Ok(claims)
 }
-
-pub fn request_access_token(req: &Request<()>) -> Result<String, Error> {
-    let Some(access_token) = req.header("authorization") else {
-        return Err(Error::from_str(400, "No Authorization Bearer found"));
-    };
-    let string_at = access_token.to_string();
-    Ok(string_at.split_whitespace().collect::<Vec<&str>>()[1].to_string())
-}

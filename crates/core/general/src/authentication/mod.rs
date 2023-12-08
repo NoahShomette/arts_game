@@ -1,7 +1,3 @@
-use core::fmt;
-use std::marker::PhantomData;
-use std::str::FromStr;
-
 use bevy::ecs::schedule::common_conditions::in_state;
 use bevy::utils::Uuid;
 use bevy::{
@@ -11,7 +7,7 @@ use bevy::{
         system::Resource,
     },
 };
-use serde::de::{self, Visitor};
+use serde::de::{self};
 use serde::{Deserialize, Deserializer, Serialize};
 use url::Url;
 

@@ -8,6 +8,7 @@ use bevy_eventwork::async_trait;
 use core_library::{
     auth_server::game::{RequestNewGameIdResponse, RequestNewGameRequest},
     game_meta::{GameId, NewGameSettings},
+    http_server::request_access_token,
     network::{GameAddrInfo, HttpRequestMeta},
 };
 use serde::{Deserialize, Serialize};
@@ -50,16 +51,17 @@ pub struct NewGameResponse {
 /// Verifies that the player is valid before it does so
 async fn request_new_game(
     mut req: Request<()>,
-    access_token: String,
+    server_access_token: String,
     auth_server_addr: Url,
     game_ip: GameAddrInfo,
     self_server_id: Uuid,
     channel: NewGameCommandsChannel,
 ) -> tide::Result {
     let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
+    let access_token = request_access_token(&req)?;
     auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
     let new_game_id = request_new_game_id(
-        access_token,
+        server_access_token,
         auth_server_addr,
         game_ip.clone(),
         self_server_id,
@@ -140,70 +142,4 @@ async fn request_new_game_id(
             return Err(Error::from_str(500, err));
         }
     };
-}
-
-/// A request for a player to join a game
-pub struct PlayerJoinGame {
-    pub(crate) access_token: String,
-    pub(crate) authentication_server_addr: Url,
-    pub(crate) self_server_id: Uuid,
-    pub(crate) game_ip: GameAddrInfo,
-    pub(crate) channel: NewGameCommandsChannel,
-}
-
-#[async_trait]
-impl Endpoint<()> for PlayerJoinGame {
-    async fn call(&self, req: Request<()>) -> tide::Result {
-        player_join_game(
-            req,
-            self.access_token.clone(),
-            self.authentication_server_addr.clone(),
-            self.game_ip.clone(),
-            self.self_server_id.clone(),
-            self.channel.clone(),
-        )
-        .await
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct PlayerJoinGameResponse {
-    pub game_id: GameId,
-    pub game_ip: GameAddrInfo,
-}
-
-/// Handles requests to start a new game
-///
-/// Verifies that the player is valid before it does so
-async fn player_join_game(
-    mut req: Request<()>,
-    access_token: String,
-    auth_server_addr: Url,
-    game_ip: GameAddrInfo,
-    self_server_id: Uuid,
-    channel: NewGameCommandsChannel,
-) -> tide::Result {
-    let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
-    auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
-    let new_game_id = request_new_game_id(
-        access_token,
-        auth_server_addr,
-        game_ip.clone(),
-        self_server_id,
-    )
-    .await?;
-
-    let _ = channel.sender_channel.send(NewGameCommand {
-        new_game_settings: request.request,
-        new_game_id,
-    });
-    Ok(tide::Response::builder(200)
-        .body(
-            serde_json::to_string(&NewGameResponse {
-                game_id: new_game_id,
-                game_ip,
-            })
-            .unwrap(),
-        )
-        .build())
 }
