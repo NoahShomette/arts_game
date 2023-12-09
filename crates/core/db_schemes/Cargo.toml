@@ -1,0 +1,14 @@
+[package]
+name = "db_schemes"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rusqlite = { workspace = true }
+general = { path = "../general" }
+serde = { workspace = true }
+serde_json = { workspace = true }

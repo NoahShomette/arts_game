@@ -7,3 +7,6 @@ pub use http_server;
 
 #[cfg(feature = "game_generator")]
 pub use game_generation;
+
+#[cfg(feature = "db_schema")]
+pub use db_schemes;

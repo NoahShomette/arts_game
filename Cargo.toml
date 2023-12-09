@@ -19,6 +19,8 @@ members = [
     "crates/core/core_library",
     "crates/core/http_server",
     "crates/core/game_generation",
+    "crates/core/db_schemes",
+
     # Game server
     "crates/game_server/game_server_binary",
     "crates/game_server/console_parser",
@@ -42,6 +44,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0.50"
 url = { version = "2.5.0" }
+rusqlite = { version = "0.30.0" }
 
 # Async web and WASM stuff
 ehttp = { version = "0.3.1", features = ["native-async"] }

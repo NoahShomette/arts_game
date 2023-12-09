@@ -10,7 +10,7 @@ use core_library::{
     http_server::TideServerResource,
     network::{
         game_http::{JoinGame, QuitGame},
-        GameAddrInfo, HttpRequestMeta,
+        HttpRequestMeta,
     },
 };
 use tide::{http::Url, Endpoint, Error, Request};

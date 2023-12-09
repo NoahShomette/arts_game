@@ -12,6 +12,9 @@ use bevy::{
     hierarchy::DespawnRecursiveExt,
 };
 use core_library::{
+    db_schemes::{
+        game_tables::create_game_players, games_meta::insert_games_meta_row, ConnectionSchema,
+    },
     game_generation::create_game_world,
     game_meta::NewGameSettings,
     game_meta::{GameId, GamePlayers},
@@ -82,16 +85,22 @@ impl Command for NewGameCommand {
                 max_players: max_players,
             },
         });
+        world.spawn(PendingDatabaseData {
+            data: NewGameInfo {},
+        });
     }
 }
 
-/// Component inserted into the world when a new game is created. Contains the neccessary information to update the
-#[derive(Component)]
+/// Contains the neccessary information to create all the games required tables
+struct NewGameInfo {}
+
+/// Component inserted into the world when a new game is created. Contains the neccessary information to update the "games_meta" table
 struct NewGameMetaTableInfo {
     game_id: GameId,
     max_players: u8,
 }
 
+/// Saves the game into the games_meta tables as well as creates all the games needed tables
 fn save_new_game_into_database(
     database: Res<DatabaseConnection>,
     pending: Query<(Entity, &PendingDatabaseData<NewGameMetaTableInfo>)>,
@@ -101,29 +110,22 @@ fn save_new_game_into_database(
         return;
     }
     if let Ok(mut connection) = database.connection.lock() {
+        let Ok(tx) = connection.transaction() else {
+            return;
+        };
         for (entity, new_game) in pending.iter() {
-            let Ok(tx) = connection.transaction() else {
-                return;
-            };
-            let game_id = new_game.data.game_id.to_json();
-            let _ = tx.execute(
-                "insert into games_meta (game_id, game_players, max_players, game_state, has_space, pending_players) values (?1, ?2, ?3, ?4, ?5, ?6)",
-                &[
-                    &game_id,
-                    &serde_json::to_string(&GamePlayers::new())
-                    .unwrap(),
-                    &new_game.data.max_players.to_string(),
-                    &0.to_string(),
-                    &1.to_string(),
-                    &0.to_string(),
-                ],
-            );
+            let _ = tx.execute_schema(insert_games_meta_row(
+                new_game.data.game_id.clone(),
+                new_game.data.max_players,
+            ));
 
-            let Ok(_) = tx.commit() else {
-                return;
-            };
+            let _ = tx.execute_schema(create_game_players(new_game.data.game_id.clone()));
 
             commands.entity(entity).despawn_recursive();
         }
+
+        let Ok(_) = tx.commit() else {
+            return;
+        };
     }
 }
