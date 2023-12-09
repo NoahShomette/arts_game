@@ -3,7 +3,7 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use bevy::{ecs::system::Resource, tasks::TaskPool};
+use bevy::{ecs::{system::Resource, component::Component}, tasks::TaskPool};
 
 pub mod actions;
 pub mod async_runners;
@@ -39,4 +39,11 @@ impl<T> Default for AsyncChannel<T> {
     fn default() -> Self {
         Self::new()
     }
+}
+
+
+/// A Component that represents data that must be saved into the database and *DOES NOT* normally exist for multiple frames
+#[derive(Component)]
+pub struct PendingDatabaseData<T>{
+    pub data: T
 }

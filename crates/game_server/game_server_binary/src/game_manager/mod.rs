@@ -6,25 +6,36 @@
 use bevy::{
     app::Plugin,
     ecs::{
-        component::Component, entity::Entity, schedule::Schedule, system::Resource, world::World,
+        component::Component,
+        entity::Entity,
+        schedule::{IntoSystemConfigs, OnEnter, Schedule},
+        system::Resource,
+        world::{Mut, World},
     },
     utils::HashMap,
 };
-use core_library::game_meta::GameId;
+use core_library::{
+    authentication::AppAuthenticationState, game_meta::GameId, http_server::TideServerResource,
+    network::game_http::JoinGame,
+};
 
-use crate::player_actions::PlayerAction;
+use crate::{http_network::start_server, player_actions::PlayerAction};
 
 use self::{
-    client_game_connection::ClientGameConnectionPlugin, game_schedule::GameWorldSimulationSchedule,
-    new_game_http::NewGameHandlerPlugin, game_database::SaveManagerPlugin,
+    client_game_connection::ClientGameConnectionPlugin,
+    game_database::{DatabaseConnection, SaveManagerPlugin},
+    game_schedule::GameWorldSimulationSchedule,
+    manage_players_in_games::{add_join_and_quit_request, JoinGameEndpoint},
+    new_game::NewGamePlugin,
+    new_game_http::NewGameHttpPlugin,
 };
 
 pub mod client_game_connection;
+mod game_database;
 pub mod game_schedule;
 mod manage_players_in_games;
 mod new_game;
 mod new_game_http;
-mod game_database;
 
 pub struct GameManagerPlugin;
 
@@ -36,9 +47,15 @@ impl Plugin for GameManagerPlugin {
         app.add_schedule(Schedule::new(GameWorldSimulationSchedule));
         app.add_plugins((
             SaveManagerPlugin,
-            NewGameHandlerPlugin,
+            NewGameHttpPlugin,
+            NewGamePlugin,
             ClientGameConnectionPlugin,
         ));
+
+        app.add_systems(
+            OnEnter(AppAuthenticationState::Authenticated),
+            add_join_and_quit_request.before(start_server),
+        );
     }
 }
 

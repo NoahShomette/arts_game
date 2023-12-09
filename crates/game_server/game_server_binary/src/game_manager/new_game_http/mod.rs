@@ -8,7 +8,6 @@ use bevy::{
     ecs::{
         schedule::{IntoSystemConfigs, OnEnter},
         system::{Res, ResMut},
-        world::Mut,
     },
 };
 use core_library::{
@@ -26,9 +25,9 @@ use self::requests::{NewGameCommandsChannel, RequestNewGame};
 
 pub mod requests;
 
-pub struct NewGameHandlerPlugin;
+pub struct NewGameHttpPlugin;
 
-impl Plugin for NewGameHandlerPlugin {
+impl Plugin for NewGameHttpPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(NewGameCommandsChannel::new());
         app.add_systems(

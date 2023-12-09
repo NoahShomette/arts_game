@@ -7,3 +7,9 @@ pub struct JoinGame {
     pub game_id: GameId,
     pub player_id: AccountId,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct QuitGame {
+    pub game_id: GameId,
+    pub player_id: AccountId,
+}

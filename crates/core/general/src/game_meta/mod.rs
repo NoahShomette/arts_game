@@ -1,10 +1,6 @@
 //! Responsible for meta information on games like settings and the like
 
-use bevy::{
-    ecs::{component::Component, system::Resource},
-    math::Vec2,
-    utils::Uuid,
-};
+use bevy::{ecs::component::Component, math::Vec2, utils::Uuid};
 use serde::{Deserialize, Serialize};
 
 use crate::auth_server::AccountId;
@@ -12,6 +8,13 @@ use crate::auth_server::AccountId;
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
 pub struct GameId {
     pub id: Uuid,
+}
+
+impl GameId {
+    /// Converts self into a json string using serde
+    pub fn to_json(self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
 }
 
 /// Meta settings on a game
@@ -25,7 +28,7 @@ pub struct GameSettings {
 #[derive(Serialize, Deserialize)]
 pub struct NewGameSettings {
     pub max_player_count: u8,
-    pub outpost_count: OutpostCount,
+    pub map_point_count: MapPointCount,
     pub map_size: MapSize,
     pub connection_density: ConnectionDensity,
     pub ticks_per_tick: u64,
@@ -52,32 +55,34 @@ impl MapSize {
     }
 }
 
+/// How many connections will be drawn between outposts
 #[derive(Serialize, Deserialize)]
 pub enum ConnectionDensity {
     Dense,
     Sparse,
 }
 
-/// The amount of outposts on a map
+/// The amount of points on a map
 #[derive(Serialize, Deserialize)]
-pub enum OutpostCount {
-    Small,
-    Medium,
-    Large,
+pub enum MapPointCount {
+    Light,
+    Normal,
+    Dense,
     Custom { outpost_count: u16 },
 }
 
-impl OutpostCount {
-    pub fn outpost_count(&self) -> &u16 {
+impl MapPointCount {
+    pub fn map_point_count(&self) -> &u16 {
         match self {
-            OutpostCount::Small => &35,
-            OutpostCount::Medium => &55,
-            OutpostCount::Large => &75,
-            OutpostCount::Custom { outpost_count } => outpost_count,
+            MapPointCount::Light => &35,
+            MapPointCount::Normal => &55,
+            MapPointCount::Dense => &75,
+            MapPointCount::Custom { outpost_count } => outpost_count,
         }
     }
 }
 
+/// Holds the [`AccountId`]s of every player that is actually playing in the game
 #[derive(Serialize, Deserialize, Clone, Component)]
 pub struct GamePlayers {
     pub players: Vec<AccountId>,
@@ -109,5 +114,10 @@ impl GamePlayers {
     /// Checks if the given player id is present
     pub fn contains(&self, player_id: &AccountId) -> bool {
         self.players.contains(player_id)
+    }
+
+    /// Returns the amount of players in the game
+    pub fn count(&self) -> u8 {
+        self.players.len() as u8
     }
 }

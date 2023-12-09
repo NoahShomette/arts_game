@@ -9,7 +9,7 @@ use general::{
 /// It simply creates the first set of valid keyframes for the world. The new game must be simulated afterwards before sending it to players
 pub fn create_game_world(settings: &NewGameSettings) -> World {
     let mut world = World::new();
-    for i in 0..*settings.outpost_count.outpost_count() {
+    for i in 0..*settings.map_point_count.map_point_count() {
         let mut pos = SteppedCurve::<ObjectPosition>::new();
         let mut color = SteppedCurve::<ObjectColor>::new();
 
