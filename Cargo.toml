@@ -19,7 +19,7 @@ members = [
     "crates/core/core_library",
     "crates/core/http_server",
     "crates/core/game_generation",
-    "crates/core/db_schemes",
+    "crates/core/sqlite_database",
 
     # Game server
     "crates/game_server/game_server_binary",

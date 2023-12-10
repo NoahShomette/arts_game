@@ -7,10 +7,10 @@ use core_library::authentication::SignInResponse;
 use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
 use core_library::auth_server::AccountId;
+use core_library::sqlite_database::Database;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
 
-use crate::database::Database;
 use crate::user_management::verify_decode_jwt;
 
 use super::supabase::SupabaseConnection;

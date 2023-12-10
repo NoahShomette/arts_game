@@ -1,14 +1,11 @@
 use std::sync::Arc;
 
-use bevy::{ecs::world::Mut, prelude::Plugin};
-use core_library::http_server::TideServerResource;
-
-use crate::database::Database;
-
 use self::{
     requests::{AuthenticateUser, RefreshTokenEndpoint, SignIn, SignOut, SignUp},
     supabase::SupabaseConnection,
 };
+use bevy::{ecs::world::Mut, prelude::Plugin};
+use core_library::{http_server::TideServerResource, sqlite_database::Database};
 
 pub mod requests;
 pub mod supabase;

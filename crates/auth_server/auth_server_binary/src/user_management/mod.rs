@@ -6,7 +6,8 @@ use core_library::{
 };
 use tide::{Error, Request};
 
-use crate::{authentication::supabase::SupabaseConnection, database::Database};
+use crate::authentication::supabase::SupabaseConnection;
+use core_library::sqlite_database::Database;
 
 use self::requests::RequestPlayerGames;
 

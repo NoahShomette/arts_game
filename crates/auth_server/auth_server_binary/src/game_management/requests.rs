@@ -7,7 +7,7 @@ use core_library::{
 };
 use tide::{Endpoint, Error, Request};
 
-use crate::database::Database;
+use core_library::sqlite_database::Database;
 
 /// A request to register a new game and return that result to the game server.
 ///

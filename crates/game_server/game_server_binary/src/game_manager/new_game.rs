@@ -3,7 +3,6 @@
 use bevy::{
     app::{Plugin, Update},
     ecs::{
-        component::Component,
         entity::Entity,
         schedule::IntoSystemConfigs,
         system::{Commands, Query, Res},
@@ -12,12 +11,15 @@ use bevy::{
     hierarchy::DespawnRecursiveExt,
 };
 use core_library::{
-    db_schemes::{
-        game_tables::create_game_players, games_meta::insert_games_meta_row, ConnectionSchema,
-    },
     game_generation::create_game_world,
+    game_meta::GameId,
     game_meta::NewGameSettings,
-    game_meta::{GameId, GamePlayers},
+    objects::ObjectIdService,
+    sqlite_database::{
+        schemes::game_tables::{create_game_players, create_game_curves},
+        schemes::games_meta::insert_games_meta_row,
+        ConnectionSchema, Database,
+    },
     PendingDatabaseData,
 };
 
@@ -25,7 +27,7 @@ use bevy::ecs::system::Command;
 
 use crate::app::app_scheduling::ServerAuthenticatedSets;
 
-use super::{game_database::DatabaseConnection, GameIdMapping, GameInstance};
+use super::{GameIdMapping, GameInstance};
 
 pub struct NewGamePlugin;
 
@@ -43,8 +45,10 @@ pub fn generate_new_game(
     main_world: &mut World,
     settings: NewGameSettings,
     new_game_id: GameId,
+    id_service: &mut ObjectIdService,
 ) -> Entity {
-    let game_world = create_game_world(&settings);
+    let mut game_world = create_game_world(&settings, id_service);
+    game_world.insert_resource(id_service.clone());
     let entity = main_world
         .spawn(GameInstance {
             game_id: new_game_id,
@@ -78,11 +82,18 @@ pub struct NewGameCommand {
 impl Command for NewGameCommand {
     fn apply(self, world: &mut bevy::prelude::World) {
         let max_players = self.new_game_settings.max_player_count.clone();
-        generate_new_game(world, self.new_game_settings, self.new_game_id);
+        let mut id_service = ObjectIdService::new();
+        generate_new_game(
+            world,
+            self.new_game_settings,
+            self.new_game_id,
+            &mut id_service,
+        );
         world.spawn(PendingDatabaseData {
             data: NewGameMetaTableInfo {
                 game_id: self.new_game_id.clone(),
                 max_players: max_players,
+                object_id_service: id_service,
             },
         });
         world.spawn(PendingDatabaseData {
@@ -98,34 +109,40 @@ struct NewGameInfo {}
 struct NewGameMetaTableInfo {
     game_id: GameId,
     max_players: u8,
+    object_id_service: ObjectIdService,
 }
 
 /// Saves the game into the games_meta tables as well as creates all the games needed tables
 fn save_new_game_into_database(
-    database: Res<DatabaseConnection>,
+    database: Res<Database>,
     pending: Query<(Entity, &PendingDatabaseData<NewGameMetaTableInfo>)>,
     mut commands: Commands,
 ) {
     if pending.is_empty() {
         return;
     }
-    if let Ok(mut connection) = database.connection.lock() {
-        let Ok(tx) = connection.transaction() else {
-            return;
-        };
-        for (entity, new_game) in pending.iter() {
-            let _ = tx.execute_schema(insert_games_meta_row(
-                new_game.data.game_id.clone(),
-                new_game.data.max_players,
-            ));
+    let Ok(mut connection) = database.connection.lock() else {
+        return;
+    };
 
-            let _ = tx.execute_schema(create_game_players(new_game.data.game_id.clone()));
+    let Ok(tx) = connection.transaction() else {
+        return;
+    };
 
-            commands.entity(entity).despawn_recursive();
-        }
+    for (entity, new_game) in pending.iter() {
+        let _ = tx.execute_schema(insert_games_meta_row(
+            new_game.data.game_id.clone(),
+            new_game.data.max_players,
+            new_game.data.object_id_service.clone(),
+        ));
 
-        let Ok(_) = tx.commit() else {
-            return;
-        };
+        let _ = tx.execute_schema(create_game_players(new_game.data.game_id.clone()));
+        let _ = tx.execute_schema(create_game_curves(new_game.data.game_id.clone()));
+
+        commands.entity(entity).despawn_recursive();
     }
+
+    let Ok(_) = tx.commit() else {
+        return;
+    };
 }

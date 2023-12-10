@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lints.clippy]
-unwrap-used = { level = "deny" }
+unwrap-used = { level = "forbid" }
 
 [dependencies]
 bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }

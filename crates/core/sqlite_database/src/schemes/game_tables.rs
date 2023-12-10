@@ -11,3 +11,13 @@ pub fn create_game_players(game_id: GameId) -> (String, Vec<String>) {
         ],
     )
 }
+
+pub fn create_game_curves(game_id: GameId) -> (String, Vec<String>) {
+    let game_id = game_id.id_as_string();
+
+    (
+        format!("CREATE TABLE game_curves_{} (object_id TEXT PRIMARY KEY NOT NULL, object_general TEXT NOT NULL, sc_object_position TEXT NOT NULL, sc_object_color TEXT NOT NULL)", game_id),
+        vec![
+        ],
+    )
+}

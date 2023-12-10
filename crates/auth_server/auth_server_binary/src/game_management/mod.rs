@@ -3,7 +3,7 @@ use core_library::http_server::TideServerResource;
 
 mod requests;
 
-use crate::database::Database;
+use core_library::sqlite_database::Database;
 
 use self::requests::RequestNewGame;
 

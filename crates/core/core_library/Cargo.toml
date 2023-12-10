@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 [features]
 http_server_feature = ["tide", "http_server", "async-trait", "jsonwebtoken"]
 game_generator = ["game_generation"]
-db_schema = ["db_schemes"]
+database = ["sqlite_database"]
 
 [dependencies]
 # HTTP Networking
@@ -25,4 +25,4 @@ general = { path = "../general" }
 
 
 # Db
-db_schemes = { path = "../db_schemes", optional = true }
+sqlite_database = { path = "../sqlite_database", optional = true }

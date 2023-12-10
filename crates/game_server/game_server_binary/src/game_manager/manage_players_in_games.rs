@@ -12,18 +12,17 @@ use core_library::{
         game_http::{JoinGame, QuitGame},
         HttpRequestMeta,
     },
+    sqlite_database::Database,
 };
 use tide::{http::Url, Endpoint, Error, Request};
 
 use crate::app_authentication::auth_user_request;
 
-use super::game_database::DatabaseConnection;
-
 pub fn add_join_and_quit_request(
     mut tide: ResMut<TideServerResource>,
     auth: Res<AuthenticationServerInfo>,
     client: Res<ClientAuthenticationInfo>,
-    database: Res<DatabaseConnection>,
+    database: Res<Database>,
 ) {
     tide.0.at("/games/join_game").get(JoinGameEndpoint {
         authentication_server_addr: auth.addr.clone(),
@@ -41,7 +40,7 @@ pub fn add_join_and_quit_request(
 pub struct JoinGameEndpoint {
     pub(crate) server_access_token: String,
     pub(crate) authentication_server_addr: Url,
-    pub(crate) database: DatabaseConnection,
+    pub(crate) database: Database,
 }
 
 #[async_trait]
@@ -70,7 +69,7 @@ async fn join_game(
     mut req: Request<()>,
     access_token: String,
     auth_server_addr: Url,
-    database: DatabaseConnection,
+    database: Database,
 ) -> tide::Result {
     let request: HttpRequestMeta<JoinGame> = req.body_json().await?;
     auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
@@ -129,7 +128,7 @@ async fn join_game(
 pub struct QuitGameEndpoint {
     pub(crate) server_access_token: String,
     pub(crate) authentication_server_addr: Url,
-    pub(crate) database: DatabaseConnection,
+    pub(crate) database: Database,
 }
 
 #[async_trait]
@@ -158,7 +157,7 @@ async fn quit_game(
     mut req: Request<()>,
     access_token: String,
     auth_server_addr: Url,
-    database: DatabaseConnection,
+    database: Database,
 ) -> tide::Result {
     let request: HttpRequestMeta<QuitGame> = req.body_json().await?;
     auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;

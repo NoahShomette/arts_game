@@ -2,12 +2,15 @@ use bevy::{ecs::world::World, math::Vec2, render::color::Color};
 use bevy_state_curves::prelude::{CurveTrait, SteppedCurve};
 use general::{
     game_meta::NewGameSettings,
-    objects::{ObjectColor, ObjectPosition},
+    objects::{
+        core_components::{ObjectColor, ObjectPosition},
+        ObjectIdService,
+    },
 };
 
 /// Function responsible for generating the new game world with the correct setup. This *DOES NOT* simulate the world.
 /// It simply creates the first set of valid keyframes for the world. The new game must be simulated afterwards before sending it to players
-pub fn create_game_world(settings: &NewGameSettings) -> World {
+pub fn create_game_world(settings: &NewGameSettings, id_service: &mut ObjectIdService) -> World {
     let mut world = World::new();
     for i in 0..*settings.map_point_count.map_point_count() {
         let mut pos = SteppedCurve::<ObjectPosition>::new();
@@ -26,7 +29,7 @@ pub fn create_game_world(settings: &NewGameSettings) -> World {
             },
         );
 
-        world.spawn((pos, color));
+        world.spawn((pos, color, id_service.new_object_id()));
     }
     world
 }

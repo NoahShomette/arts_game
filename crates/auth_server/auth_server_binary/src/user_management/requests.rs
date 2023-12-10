@@ -2,12 +2,16 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use core_library::{auth_server::player_data::{PlayerGames, PlayerGamesResponse}, game_meta::GameId};
+use core_library::{
+    auth_server::player_data::{PlayerGames, PlayerGamesResponse},
+    game_meta::GameId,
+};
 use tide::{http::Url, Endpoint, Request};
 
-use crate::{authentication::supabase::SupabaseConnection, database::Database};
+use crate::authentication::supabase::SupabaseConnection;
+use crate::user_management::verify_decode_jwt;
 
-use super::verify_decode_jwt;
+use core_library::sqlite_database::Database;
 
 /// A request to register a new game and return that result to the game server.
 ///

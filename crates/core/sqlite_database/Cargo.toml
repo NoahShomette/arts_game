@@ -1,5 +1,5 @@
 [package]
-name = "db_schemes"
+name = "sqlite_database"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -12,3 +12,4 @@ rusqlite = { workspace = true }
 general = { path = "../general" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+bevy = { workspace = true }
