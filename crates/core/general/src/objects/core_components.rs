@@ -33,7 +33,7 @@ pub struct ObjectColor {
 
 impl SteppedKeyframe<ObjectColor> for ObjectColor {}
 
-/// Component that holds what General controls this unit
+/// Component that holds what General (Player basically) controls this unit
 #[derive(Clone, Component, Serialize, Deserialize)]
 pub struct ObjectGeneral {
     id: AccountId,

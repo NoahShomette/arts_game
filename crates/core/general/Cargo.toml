@@ -7,7 +7,12 @@ edition.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
+bevy = { workspace = true, features = [
+    "multi-threaded",
+    "bevy_asset",
+    "bevy_render",
+    "bevy_core_pipeline",
+] }
 bevy_state_curves = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
