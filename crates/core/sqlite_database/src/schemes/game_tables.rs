@@ -21,7 +21,7 @@ pub fn create_game_curves(game_id: GameId) -> (String, Vec<String>) {
     let game_id = game_id.id_as_string();
 
     (
-        format!("CREATE TABLE game_curves_{} (object_id TEXT PRIMARY KEY NOT NULL, object_general TEXT NOT NULL, sc_object_position TEXT NOT NULL, sc_object_color TEXT NOT NULL)", game_id),
+        format!("CREATE TABLE game_curves_{} (object_id TEXT PRIMARY KEY NOT NULL, object_general TEXT, sc_object_position TEXT NOT NULL, sc_object_color TEXT NOT NULL)", game_id),
         vec![
         ],
     )
@@ -40,9 +40,7 @@ pub fn insert_game_curves_row(
     let Ok(object_id) = serde_json::to_string(&object_id) else {
         return None;
     };
-    let Ok(object_general) = serde_json::to_string(&object_general) else {
-        return None;
-    };
+
     let Ok(object_position) = serde_json::to_string(&object_position) else {
         return None;
     };
@@ -50,12 +48,24 @@ pub fn insert_game_curves_row(
         return None;
     };
 
-    Some((
-    format!("insert into game_curves_{} (object_id, object_general, sc_object_position, sc_object_color) values (?1, ?2, ?3, ?4)", game_id),
-    vec![
-        object_id,
-        object_general,
-        object_position,
-        object_color,
-    ],))
+    match object_general {
+        Some(object_general) => {
+            let Ok(object_general) = serde_json::to_string(&object_general) else {
+                return None;
+            };
+            Some((format!("insert into game_curves_{} (object_id, object_general, sc_object_position, sc_object_color) values (?1, ?2, ?3, ?4)", game_id),
+        vec![
+            object_id,
+            object_general,
+            object_position,
+            object_color,
+        ],))
+        }
+        None => Some((format!("insert into game_curves_{} (object_id, sc_object_position, sc_object_color) values (?1, ?2, ?3)", game_id),
+        vec![
+            object_id,
+            object_position,
+            object_color,
+        ],)),
+    }
 }
