@@ -16,7 +16,7 @@ use core_library::{
     game_meta::NewGameSettings,
     objects::ObjectIdService,
     sqlite_database::{
-        schemes::game_tables::{create_game_players, create_game_curves},
+        schemes::game_tables::{create_game_curves, create_game_players},
         schemes::games_meta::insert_games_meta_row,
         ConnectionSchema, Database,
     },

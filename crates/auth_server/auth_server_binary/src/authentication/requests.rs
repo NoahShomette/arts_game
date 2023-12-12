@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
+use core_library::auth_server::AccountId;
 use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
 use core_library::authentication::SignInResponse;
 use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
-use core_library::auth_server::AccountId;
 use core_library::sqlite_database::Database;
 use tide::utils::async_trait;
 use tide::{Endpoint, Request};
@@ -72,9 +72,10 @@ async fn sign_in(
                         match tx.prepare(&format!(
                             "SELECT player_id FROM player_data where player_id = {}",
                             account_id
-                        )){
-                            Ok(_) => {},
-                            Err(_) => {let _ = tx.execute(
+                        )) {
+                            Ok(_) => {}
+                            Err(_) => {
+                                let _ = tx.execute(
                                 "insert into player_data (player_id, player_games) values (?1, ?2)",
                                 &[
                                     &account_id,
@@ -83,19 +84,19 @@ async fn sign_in(
                                     })
                                     .unwrap(),
                                 ],
-                            );},
+                            );
+                            }
                         }
                     }
                 }
                 false => {
                     {
-                        match 
                         // Check if there is already a server account saved
-                        tx.prepare(&format!(
+                        match tx.prepare(&format!(
                             "SELECT server_id FROM server_data where server_id = {}",
                             account_id
-                        )){
-                            Ok(_) => {},
+                        )) {
+                            Ok(_) => {}
                             Err(_) => {
                                 let _ = tx.execute(
                                     "insert into server_data (server_id, server_type) values (?1, ?2)",

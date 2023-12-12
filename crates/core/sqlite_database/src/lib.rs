@@ -1,11 +1,14 @@
+use database_trait::DatabaseData;
 use rusqlite::{params_from_iter, Error, Transaction};
 
 use std::sync::{Arc, Mutex};
 
-use bevy::{app::Plugin, ecs::system::Resource};
+use bevy::{app::Plugin, ecs::system::Resource, utils::HashMap};
 use rusqlite::Connection;
 
+pub mod database_trait;
 pub mod schemes;
+pub mod write_system;
 
 pub struct DatabasePlugin {
     pub database_path: String,
@@ -39,4 +42,9 @@ impl ConnectionSchema for Transaction<'_> {
     fn execute_schema(&self, params: (String, Vec<String>)) -> Result<usize, Error> {
         self.execute(&params.0, params_from_iter(params.1.iter()))
     }
+}
+
+///
+pub struct DatabaseDataRegistry {
+    pub map: HashMap<&'static str, Box<dyn DatabaseData>>,
 }

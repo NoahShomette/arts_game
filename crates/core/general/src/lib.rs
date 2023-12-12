@@ -3,13 +3,17 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use bevy::{ecs::{system::Resource, component::Component}, tasks::TaskPool};
+use bevy::{
+    ecs::{component::Component, system::Resource},
+    tasks::TaskPool,
+};
 
 pub mod actions;
 pub mod async_runners;
 pub mod auth_server;
 pub mod authentication;
 pub mod game_meta;
+pub mod game_simulation;
 pub mod network;
 pub mod objects;
 pub mod player;
@@ -41,9 +45,8 @@ impl<T> Default for AsyncChannel<T> {
     }
 }
 
-
 /// A Component that represents data that must be saved into the database and *DOES NOT* normally exist for multiple frames
 #[derive(Component)]
-pub struct PendingDatabaseData<T>{
-    pub data: T
+pub struct PendingDatabaseData<T> {
+    pub data: T,
 }
