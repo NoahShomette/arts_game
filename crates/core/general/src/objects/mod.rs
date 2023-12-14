@@ -7,7 +7,7 @@ pub mod core_components;
 pub mod outpost;
 
 /// A persistent service used to generate new unique ids. It is saved into the games meta db
-#[derive(Resource, Serialize, Deserialize, Clone)]
+#[derive(Resource, Serialize, Deserialize, Clone, Debug)]
 pub struct ObjectIdService {
     max_id_next: u32,
     available_ids: Vec<u32>,

@@ -2,6 +2,8 @@
 //!
 //! Joining and leaving in progress games will need to look a bit differently but this can probably easily be updated to do that in the future
 
+use std::sync::mpsc::Sender;
+
 use bevy::ecs::system::{Res, ResMut};
 use bevy_eventwork::async_trait;
 use core_library::{
@@ -12,7 +14,8 @@ use core_library::{
         game_http::{JoinGame, QuitGame},
         HttpRequestMeta,
     },
-    sqlite_database::Database,
+    sqlite_database::{database_traits::AdHocDatabaseData, update_row::UpdateRow, Database},
+    AsyncChannel,
 };
 use tide::{http::Url, Endpoint, Error, Request};
 
@@ -23,16 +26,19 @@ pub fn add_join_and_quit_request(
     auth: Res<AuthenticationServerInfo>,
     client: Res<ClientAuthenticationInfo>,
     database: Res<Database>,
+    update_row_channel: Res<AsyncChannel<UpdateRow>>,
 ) {
     tide.0.at("/games/join_game").get(JoinGameEndpoint {
         authentication_server_addr: auth.addr.clone(),
         server_access_token: client.sign_in_info.access_token.clone(),
         database: database.clone(),
+        update_row_channel: update_row_channel.sender_channel.clone(),
     });
     tide.0.at("/games/quit_game").get(QuitGameEndpoint {
         authentication_server_addr: auth.addr.clone(),
         server_access_token: client.sign_in_info.access_token.clone(),
         database: database.clone(),
+        update_row_channel: update_row_channel.sender_channel.clone(),
     });
 }
 
@@ -41,6 +47,7 @@ pub struct JoinGameEndpoint {
     pub(crate) server_access_token: String,
     pub(crate) authentication_server_addr: Url,
     pub(crate) database: Database,
+    pub(crate) update_row_channel: Sender<UpdateRow>,
 }
 
 #[async_trait]
@@ -51,6 +58,7 @@ impl Endpoint<()> for JoinGameEndpoint {
             self.server_access_token.clone(),
             self.authentication_server_addr.clone(),
             self.database.clone(),
+            self.update_row_channel.clone(),
         )
         .await
     }
@@ -70,6 +78,7 @@ async fn join_game(
     access_token: String,
     auth_server_addr: Url,
     database: Database,
+    update_row_channel: Sender<UpdateRow>,
 ) -> tide::Result {
     let request: HttpRequestMeta<JoinGame> = req.body_json().await?;
     auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
@@ -111,14 +120,16 @@ async fn join_game(
                 new_pending_players = server_info.pending_players + 1;
             }
         }
-        let _ = tx.execute(
-            "UPDATE games_meta SET pending_players = ?1, WHERE game_id = ?2",
-            &[
-                &new_pending_players.to_string(),
-                &request.request.game_id.to_json(),
-            ],
-        );
         tx.commit()?;
+
+        let _ = update_row_channel.send(UpdateRow {
+            table_name: "games_meta".to_string(),
+            row_id: Box::new(request.request.game_id.clone()),
+            database_data: vec![Box::new(AdHocDatabaseData {
+                data: new_pending_players.to_string(),
+                column_name: "pending_players".to_string(),
+            })],
+        });
     }
 
     Ok(tide::Response::builder(200).build())
@@ -129,6 +140,7 @@ pub struct QuitGameEndpoint {
     pub(crate) server_access_token: String,
     pub(crate) authentication_server_addr: Url,
     pub(crate) database: Database,
+    pub(crate) update_row_channel: Sender<UpdateRow>,
 }
 
 #[async_trait]
@@ -139,6 +151,7 @@ impl Endpoint<()> for QuitGameEndpoint {
             self.server_access_token.clone(),
             self.authentication_server_addr.clone(),
             self.database.clone(),
+            self.update_row_channel.clone(),
         )
         .await
     }
@@ -146,11 +159,9 @@ impl Endpoint<()> for QuitGameEndpoint {
 
 struct QuitDbQuery {
     game_players: String,
-    max_players: u8,
-    pending_players: u8,
 }
 
-/// Handles requests to join a game
+/// Handles requests to quit a game
 ///
 /// Verifies that the player is valid before it adds them to the game
 async fn quit_game(
@@ -158,54 +169,47 @@ async fn quit_game(
     access_token: String,
     auth_server_addr: Url,
     database: Database,
+    update_row_channel: Sender<UpdateRow>,
 ) -> tide::Result {
     let request: HttpRequestMeta<QuitGame> = req.body_json().await?;
     auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
 
-    // Simple verification that the player can join the game - an ok will be returned and the game server will add the player as soon as it can
-
+    // Simple verification that the player is in the game and can quit
     if let Ok(mut connection) = database.connection.lock() {
         let tx = connection.transaction()?;
-        let mut new_pending_players = 0;
         {
             let mut stmt = tx.prepare(&format!(
-                "SELECT game_players, max_players, pending_players FROM games_meta where game_id = {} AND has_space = {} AND game_state = {}",
+                "SELECT game_players FROM games_meta where game_id = {}",
                 request.request.game_id.to_json(),
-                &1.to_string(),
-                &0.to_string(),
             ))?;
 
             let server = stmt.query_map((), |row| {
                 Ok(QuitDbQuery {
                     game_players: row.get(1)?,
-                    max_players: row.get(2)?,
-                    pending_players: row.get(5)?,
                 })
             })?;
 
             for server in server {
                 let server_info = server?;
-                let game_players =
+                let mut game_players =
                     match serde_json::from_str::<GamePlayers>(&server_info.game_players) {
                         Ok(info) => info,
                         Err(err) => return Err(Error::from_str(500, err)),
                     };
 
-                if game_players.contains(&request.request.player_id)
-                    || game_players.count() + server_info.pending_players >= server_info.max_players
-                {
-                    return Err(Error::from_str(500, "Player not able to join game"));
+                if !game_players.contains(&request.request.player_id) {
+                    return Err(Error::from_str(500, "Player already not in game"));
                 }
-                new_pending_players = server_info.pending_players + 1;
+
+                game_players.remove(&request.request.player_id);
+
+                let _ = update_row_channel.send(UpdateRow {
+                    table_name: "games_meta".to_string(),
+                    row_id: Box::new(request.request.game_id.clone()),
+                    database_data: vec![Box::new(game_players)],
+                });
             }
         }
-        let _ = tx.execute(
-            "UPDATE games_meta SET pending_players = ?1, WHERE game_id = ?2",
-            &[
-                &new_pending_players.to_string(),
-                &request.request.game_id.to_json(),
-            ],
-        );
         tx.commit()?;
     }
 

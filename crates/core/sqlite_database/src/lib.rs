@@ -1,14 +1,16 @@
-use database_trait::DatabaseData;
+use database_traits::DatabaseData;
 use rusqlite::{params_from_iter, Error, Transaction};
+use schemes::{game_server::games_meta::InsertGamesMetaRow, DatabaseSchemeAppExtension};
+use update_row::UpdateRow;
 
 use std::sync::{Arc, Mutex};
 
 use bevy::{app::Plugin, ecs::system::Resource, utils::HashMap};
 use rusqlite::Connection;
 
-pub mod database_trait;
+pub mod database_traits;
 pub mod schemes;
-pub mod write_system;
+pub mod update_row;
 
 pub struct DatabasePlugin {
     pub database_path: String,
@@ -21,6 +23,9 @@ impl Plugin for DatabasePlugin {
                 Connection::open(&self.database_path).expect("No Database found"),
             )),
         });
+
+        app.register_sql_action::<UpdateRow>();
+        app.register_sql_action::<InsertGamesMetaRow>();
     }
 }
 

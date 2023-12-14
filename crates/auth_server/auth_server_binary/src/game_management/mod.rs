@@ -14,7 +14,7 @@ impl Plugin for GameManagementPlugin {
         app.world.resource_scope(|world, database: Mut<Database>| {
             world.resource_scope(|_world, mut tide: Mut<TideServerResource>| {
                 tide.0
-                    .at("/game_management/request_new_game")
+                    .at("/games/request_new_game")
                     .post(RequestNewGame {
                         database: database.clone(),
                     });

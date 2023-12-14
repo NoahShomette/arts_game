@@ -13,4 +13,4 @@ general = { path = "../general" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 bevy = { workspace = true }
-bevy_state_curves = { workspace = true, features = ["serde"] }
+bevy_state_curves = { workspace = true, features = ["serde", "type_path"] }

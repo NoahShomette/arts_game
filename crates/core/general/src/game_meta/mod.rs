@@ -1,11 +1,11 @@
 //! Responsible for meta information on games like settings and the like
 
-use bevy::{ecs::component::Component, math::Vec2, utils::Uuid};
+use bevy::{ecs::component::Component, math::Vec2, reflect::TypePath, utils::Uuid};
 use serde::{Deserialize, Serialize};
 
 use crate::auth_server::AccountId;
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash, TypePath, Debug)]
 pub struct GameId {
     pub id: Uuid,
 }

@@ -119,7 +119,7 @@ async fn request_new_game_id(
         }
     };
     let mut request = ehttp::Request::post(
-        format!("{}/game_management/request_new_game", auth_server_addr),
+        format!("{}/games/request_new_game", auth_server_addr),
         message,
     );
 
