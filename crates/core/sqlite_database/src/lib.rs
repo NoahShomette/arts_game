@@ -1,6 +1,6 @@
 use database_traits::DatabaseData;
 use rusqlite::{params_from_iter, Error, Transaction};
-use schemes::{game_server::games_meta::InsertGamesMetaRow, DatabaseSchemeAppExtension};
+use schemes::{game_server::GameServerPlugin, DatabaseSchemeAppExtension};
 use update_row::UpdateRow;
 
 use std::sync::{Arc, Mutex};
@@ -24,8 +24,9 @@ impl Plugin for DatabasePlugin {
             )),
         });
 
+        app.add_plugins(GameServerPlugin);
+
         app.register_sql_action::<UpdateRow>();
-        app.register_sql_action::<InsertGamesMetaRow>();
     }
 }
 

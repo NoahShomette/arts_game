@@ -11,9 +11,11 @@ license = "MIT OR Apache-2.0"
 core_library = { path = "../../core/core_library", features = [
     "http_server_feature",
     "game_generator",
-    "database"
+    "database",
 ] }
-bevy = { workspace = true }
+bevy = { workspace = true, default-features = false, features = [
+    'multi-threaded',
+] }
 bevy_state_curves = { workspace = true }
 clap = { version = "4.4.8", features = ["derive"] }
 

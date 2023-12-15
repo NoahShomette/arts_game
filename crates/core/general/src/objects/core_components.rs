@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::auth_server::AccountId;
 
 /// An Id uniquely identifying an object in the game state
-#[derive(Component, Serialize, Deserialize)]
+#[derive(Component, Serialize, Deserialize, Debug)]
 pub struct ObjectId {
     pub id: u32,
 }
@@ -18,7 +18,7 @@ impl ObjectId {
 }
 
 /// The Position of an object
-#[derive(Clone, Component, Serialize, Deserialize)]
+#[derive(Clone, Component, Serialize, Deserialize, Debug)]
 pub struct ObjectPosition {
     pub position: Vec2,
 }
@@ -26,7 +26,7 @@ pub struct ObjectPosition {
 impl SteppedKeyframe<ObjectPosition> for ObjectPosition {}
 
 /// A temporary testing keyframe that controls what color an object is
-#[derive(Clone, Component, Serialize, Deserialize)]
+#[derive(Clone, Component, Serialize, Deserialize, Debug)]
 pub struct ObjectColor {
     pub color: Color,
 }
@@ -34,7 +34,7 @@ pub struct ObjectColor {
 impl SteppedKeyframe<ObjectColor> for ObjectColor {}
 
 /// Component that holds what General (Player basically) controls this unit
-#[derive(Clone, Component, Serialize, Deserialize)]
+#[derive(Clone, Component, Serialize, Deserialize, Debug)]
 pub struct ObjectGeneral {
     id: AccountId,
 }

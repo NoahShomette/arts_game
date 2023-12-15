@@ -1,26 +1,20 @@
 //! System that generates a new game
 
 use bevy::{
-    app::{Plugin, Update},
+    app::Plugin,
     ecs::{
         entity::Entity,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Query, Res},
         world::{Mut, World},
     },
-    hierarchy::DespawnRecursiveExt,
 };
 use core_library::{
     game_generation::create_game_world,
     game_meta::GameId,
     game_meta::NewGameSettings,
     objects::ObjectIdService,
-    sqlite_database::{
-        schemes::game_server::{
-            game_tables::{create_game_curves, create_game_players},
-            games_meta::InsertGamesMetaRow,
-        },
-        ConnectionSchema, Database,
+    sqlite_database::schemes::game_server::{
+        game_tables::{CreateGameCurvesTable, CreateGamePlayersTable},
+        games_meta::InsertGamesMetaRow,
     },
     AsyncChannel, PendingDatabaseData,
 };
@@ -78,14 +72,18 @@ impl Command for NewGameCommand {
     fn apply(self, world: &mut bevy::prelude::World) {
         let max_players = self.new_game_settings.max_player_count.clone();
         let mut id_service = ObjectIdService::new();
-        generate_new_game(
+        let game_id = generate_new_game(
             world,
             self.new_game_settings,
             self.new_game_id,
             &mut id_service,
         );
+        world.resource_scope(|_world: &mut World, mut mapping: Mut<GameIdMapping>| {
+            mapping.map.insert(self.new_game_id, game_id)
+        });
+
         world.resource_scope(
-            |world: &mut World, channel: Mut<AsyncChannel<InsertGamesMetaRow>>| {
+            |_world: &mut World, channel: Mut<AsyncChannel<InsertGamesMetaRow>>| {
                 let _ = channel.sender_channel.send(InsertGamesMetaRow {
                     game_id: self.new_game_id.clone(),
                     max_players,
@@ -93,9 +91,20 @@ impl Command for NewGameCommand {
                 });
             },
         );
-        world.spawn(PendingDatabaseData {
-            data: NewGameInfo {},
-        });
+        world.resource_scope(
+            |_world: &mut World, channel: Mut<AsyncChannel<CreateGameCurvesTable>>| {
+                let _ = channel.sender_channel.send(CreateGameCurvesTable {
+                    game_id: self.new_game_id.clone(),
+                });
+            },
+        );
+        world.resource_scope(
+            |_world: &mut World, channel: Mut<AsyncChannel<CreateGamePlayersTable>>| {
+                let _ = channel.sender_channel.send(CreateGamePlayersTable {
+                    game_id: self.new_game_id.clone(),
+                });
+            },
+        );
     }
 }
 
