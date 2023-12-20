@@ -6,7 +6,11 @@ use std::sync::{
 use bevy::{ecs::system::Resource, utils::Uuid};
 use bevy_eventwork::async_trait;
 use core_library::{
-    auth_server::game::{RequestNewGameIdResponse, RequestNewGameRequest},
+    auth_server::{
+        game::{RequestNewGameIdResponse, RequestNewGameRequest},
+        AccountId,
+    },
+    authentication::client_authentication::Claims,
     game_meta::{GameId, NewGameSettings},
     http_server::request_access_token,
     network::{GameAddrInfo, HttpRequestMeta},
@@ -59,7 +63,17 @@ async fn request_new_game(
 ) -> tide::Result {
     let request: HttpRequestMeta<NewGameSettings> = req.body_json().await?;
     let access_token = request_access_token(&req)?;
-    auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
+    let body = auth_user_request(access_token.clone(), auth_server_addr.clone()).await?;
+    let requesting_player: Option<AccountId> = match body.text() {
+        Some(text) => {
+            let claims: Claims = serde_json::from_str(text).unwrap();
+            match Uuid::parse_str(&claims.sub) {
+                Ok(id) => Some(AccountId { id: id }),
+                Err(_) => None,
+            }
+        }
+        None => None,
+    };
     let new_game_id = request_new_game_id(
         server_access_token,
         auth_server_addr,
@@ -71,6 +85,7 @@ async fn request_new_game(
     let _ = channel.sender_channel.send(NewGameCommand {
         new_game_settings: request.request,
         new_game_id,
+        owning_player: requesting_player,
     });
     Ok(tide::Response::builder(200)
         .body(
@@ -119,7 +134,7 @@ async fn request_new_game_id(
         }
     };
     let mut request = ehttp::Request::post(
-        format!("{}/games/request_new_game", auth_server_addr),
+        format!("{}games/request_new_game", auth_server_addr),
         message,
     );
 
@@ -128,16 +143,19 @@ async fn request_new_game_id(
         .insert("Content-Type".to_string(), "application/json".to_string());
 
     request.headers.insert(
-        "autherization".to_string(),
+        "authorization".to_string(),
         format!("Bearer {}", access_token),
     );
 
     match ehttp::fetch_async(request).await {
-        Ok(response) => {
-            let new_game_id: RequestNewGameIdResponse =
-                serde_json::from_str(response.text().unwrap()).unwrap();
-            return Ok(new_game_id.game_id);
-        }
+        Ok(response) => match response.status {
+            200 => {
+                let new_game_id: RequestNewGameIdResponse =
+                    serde_json::from_str(response.text().unwrap()).unwrap();
+                return Ok(new_game_id.game_id);
+            }
+            _ => return Err(Error::from_str(response.status, response.status_text)),
+        },
         Err(err) => {
             return Err(Error::from_str(500, err));
         }

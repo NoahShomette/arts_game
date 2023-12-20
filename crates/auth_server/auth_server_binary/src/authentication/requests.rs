@@ -58,7 +58,7 @@ async fn sign_in(
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let is_player = request.request.is_player();
     let result = supabase.sign_in_password(request.request).await?;
-    if let Ok(mut connection) = database.connection.lock() {
+    if let Ok(mut connection) = database.connection.try_lock() {
         if let Some(result_text) = result.text() {
             let v: SignInResponse = serde_json::from_str(result_text)?;
             let _user_id = v.user.id.clone();
@@ -151,10 +151,12 @@ impl Endpoint<()> for AuthenticateUser {
 }
 
 async fn authenticate_user(req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
-    println!("Received Sign Out Request");
+    println!("Received Authentication Request");
     // Verify that it is a real user who is validly signed in
-    let _ = verify_decode_jwt(&req, supabase)?;
-    Ok(tide::Response::builder(200).build())
+    let claims = verify_decode_jwt(&req, supabase)?;
+    Ok(tide::Response::builder(200)
+        .body(serde_json::to_string(&claims).unwrap().as_str())
+        .build())
 }
 
 /// Refreshes a users AccessToken.

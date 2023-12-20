@@ -1,7 +1,10 @@
 use async_trait::async_trait;
 use bevy::utils::Uuid;
 use core_library::{
-    auth_server::game::{RequestNewGameIdResponse, RequestNewGameRequest},
+    auth_server::{
+        game::{RequestNewGameIdResponse, RequestNewGameRequest},
+        AccountId,
+    },
     game_meta::GameId,
     network::HttpRequestMeta,
 };
@@ -33,20 +36,27 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
     let request: HttpRequestMeta<RequestNewGameRequest> = req.body_json().await?;
     let mut server_type = 3;
     let game_id = Uuid::new_v4();
-    if let Ok(mut connection) = database.connection.lock() {
+    if let Ok(mut connection) = database.connection.try_lock() {
+        let account_id = serde_json::to_string(&AccountId {
+            id: request.request.server_id.clone(),
+        })?;
         {
-            // Simple verification that the requested server to host the game actually exists
-            let mut stmt = connection.prepare(&format!(
+            println!(
                 "SELECT server_id, server_type FROM server_data where server_id = {}",
-                request.request.server_id
-            ))?;
+                account_id
+            );
 
+            println!("SELECT server_id, server_type FROM server_data");
+
+            // Simple verification that the requested server to host the game actually exists
+            let mut stmt = connection.prepare("SELECT server_id, server_type FROM server_data")?;
             let server = stmt.query_map((), |row| {
                 Ok(QueryResultRNG {
                     _server_id: row.get(0)?,
                     _server_type: row.get(1)?,
                 })
             })?;
+
             for server in server {
                 let server_info = server?;
                 server_type = server_info._server_type
@@ -64,7 +74,7 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
                 &game_addr,
                 "1",
                 "1",
-                &request.request.server_id.to_string(),
+                &account_id,
                 &server_type.to_string(),
             ],
         );

@@ -31,7 +31,7 @@ impl Plugin for AuthenticationPlugin {
                 tide.0.at("/auth/refresh_token").post(RefreshTokenEndpoint {
                     supabase: Arc::new(supabase.clone()),
                 });
-                tide.0.at("/auth/authenticate_user").post(AuthenticateUser {
+                tide.0.at("/auth/authenticate_user").get(AuthenticateUser {
                     supabase: Arc::new(supabase.clone()),
                 });
             });

@@ -1,11 +1,30 @@
 //! Responsible for meta information on games like settings and the like
 
-use bevy::{ecs::component::Component, math::Vec2, reflect::TypePath, utils::Uuid};
+use bevy::{
+    ecs::{component::Component, system::Resource},
+    math::Vec2,
+    reflect::TypePath,
+    utils::Uuid,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::auth_server::AccountId;
 
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash, TypePath, Debug)]
+#[derive(
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    Eq,
+    Hash,
+    TypePath,
+    Debug,
+    Resource,
+    Component,
+)]
 pub struct GameId {
     pub id: Uuid,
 }
@@ -125,4 +144,10 @@ impl GamePlayers {
     pub fn count(&self) -> u8 {
         self.players.len() as u8
     }
+}
+
+/// Resource inserted into the game world and component attached to the [`GameInstance`] entity that holds the player who "owns" the game
+#[derive(Resource, Component)]
+pub struct OwningPlayer {
+    pub player_id: AccountId,
 }

@@ -5,6 +5,7 @@ use client_game_server_network::GameServerPlugin;
 use core_library::TaskPoolRes;
 use game_manager::GameManagerPlugin;
 use game_runner::GameRunnerPlugin;
+use http_network::HttpNetworkPlugin;
 
 mod app;
 mod app_authentication;
@@ -18,7 +19,7 @@ pub struct ServerPlugin;
 
 impl Plugin for ServerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));
+        app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().build()));
 
         // Game Server Plugin must be inserted first so that the GameWorldSimulationSchedule is available to all other plugins
         app.add_plugins(GameServerPlugin);
@@ -27,6 +28,7 @@ impl Plugin for ServerPlugin {
             AuthenticationPlugin,
             GameRunnerPlugin,
             GameManagerPlugin,
+            HttpNetworkPlugin,
         ));
     }
 }

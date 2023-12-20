@@ -1,6 +1,7 @@
 use authentication::AuthenticationPlugin;
 use bevy::app::Plugin;
 use database::DatabaseManagerPlugin;
+use game_management::GameManagementPlugin;
 use user_management::UserManagementPlugin;
 
 pub mod authentication;
@@ -16,6 +17,7 @@ impl Plugin for ServerLibraryPlugin {
             DatabaseManagerPlugin,
             AuthenticationPlugin,
             UserManagementPlugin,
+            GameManagementPlugin,
         ));
     }
 }

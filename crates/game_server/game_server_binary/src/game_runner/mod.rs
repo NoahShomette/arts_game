@@ -10,8 +10,9 @@ use bevy::{
         world::{Mut, World},
     },
 };
+use core_library::game_simulation::GameWorldSimulationSchedule;
 
-use crate::game_manager::{game_schedule::GameWorldSimulationSchedule, GameInstance};
+use crate::game_manager::GameInstance;
 
 pub struct GameRunnerPlugin;
 

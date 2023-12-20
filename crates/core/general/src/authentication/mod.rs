@@ -11,7 +11,7 @@ use serde::de::{self};
 use serde::{Deserialize, Deserializer, Serialize};
 use url::Url;
 
-use self::client_authentication::AuthClient;
+use self::client_authentication::{AuthClient, Claims};
 use self::{
     client_auth_systems::{receive_auth_results, sign_in, sign_out, sign_up},
     client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
@@ -129,4 +129,9 @@ where
 {
     let s: &str = Deserialize::deserialize(deserializer)?;
     Uuid::parse_str(s).map_err(|_| de::Error::custom("Error parsing into UUID"))
+}
+
+/// Response sent from the auth server to any server requesting to authenticate and decode a users Access Token
+pub struct AuthenticationRequestResponse {
+    pub claims: Claims,
 }

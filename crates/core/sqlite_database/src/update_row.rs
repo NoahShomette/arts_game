@@ -2,13 +2,36 @@ use std::fmt::Debug;
 
 use bevy::ecs::component::Component;
 
-use crate::database_traits::{DatabaseData, DatabaseSql};
+use crate::database_traits::{DatabaseData, DatabaseSql, PureDatabaseData};
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct UpdateRow {
     pub table_name: String,
-    pub row_id: Box<dyn DatabaseData + Send + Sync>,
-    pub database_data: Vec<Box<dyn DatabaseData + Send + Sync>>,
+    pub row_id: PureDatabaseData,
+    pub database_data: Vec<PureDatabaseData>,
+}
+
+impl UpdateRow {
+    /// Constructs a new UpdateRow struct if the data contained is valid
+    pub fn new(
+        table_name: String,
+        row_id: &impl DatabaseData,
+        database_data: &impl DatabaseData,
+    ) -> Result<UpdateRow, String> {
+        let Some(row_id) = row_id.to_database_data() else {
+            return Err("Row Id invalid".to_string());
+        };
+
+        let Some(database_data) = database_data.to_database_data() else {
+            return Err("DatabaseData invalid".to_string());
+        };
+
+        Ok(UpdateRow {
+            table_name,
+            row_id,
+            database_data: vec![database_data],
+        })
+    }
 }
 
 impl Debug for UpdateRow {
@@ -35,9 +58,7 @@ impl DatabaseSql for UpdateRow {
             .iter()
             .filter_map(|x| x.to_database_string())
             .collect();
-        //UPDATE games_meta SET pending_players = ?1, WHERE game_id = ?2",
-
-        let mut sql_command = format!("UPDATE {} SET ", self.table_name);
+        let mut sql_command = format!("UPDATE \"{}\" SET ", self.table_name);
         for (index, data) in self.database_data.iter().enumerate() {
             sql_command.push_str(&format!("{} = ?{}, ", data.column_name(), index + 1));
         }

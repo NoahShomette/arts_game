@@ -1,14 +1,24 @@
 use database_traits::DatabaseData;
+use general::clone_async_sender;
 use rusqlite::{params_from_iter, Error, Transaction};
-use schemes::{game_server::GameServerPlugin, DatabaseSchemeAppExtension};
+use saving::DatabaseSavePlugin;
+use schemes::{
+    game_server::{setup_game_server_schemes, GameServerPlugin},
+    DatabaseSchemeAppExtension,
+};
 use update_row::UpdateRow;
 
 use std::sync::{Arc, Mutex};
 
-use bevy::{app::Plugin, ecs::system::Resource, utils::HashMap};
+use bevy::{
+    app::Plugin,
+    ecs::{system::Resource, world::World},
+    utils::HashMap,
+};
 use rusqlite::Connection;
 
 pub mod database_traits;
+pub mod saving;
 pub mod schemes;
 pub mod update_row;
 
@@ -24,9 +34,9 @@ impl Plugin for DatabasePlugin {
             )),
         });
 
-        app.add_plugins(GameServerPlugin);
+        app.add_plugins((GameServerPlugin, DatabaseSavePlugin));
 
-        app.register_sql_action::<UpdateRow>();
+        app.server_register_sql_action::<UpdateRow>();
     }
 }
 
@@ -53,4 +63,14 @@ impl ConnectionSchema for Transaction<'_> {
 ///
 pub struct DatabaseDataRegistry {
     pub map: HashMap<&'static str, Box<dyn DatabaseData>>,
+}
+
+/// Fn that sets up the game world with everything needed by the save and database systems
+pub fn game_world_setup_saving(server_world: &World, game_world: &mut World) {
+    game_world.insert_resource(
+        clone_async_sender::<UpdateRow>(server_world)
+            .expect("AsyncChannelSender<UpdateRow> not found"),
+    );
+
+    setup_game_server_schemes(server_world, game_world)
 }

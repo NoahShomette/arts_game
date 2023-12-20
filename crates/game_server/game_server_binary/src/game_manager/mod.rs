@@ -8,7 +8,7 @@ use bevy::{
     ecs::{
         component::Component,
         entity::Entity,
-        schedule::{IntoSystemConfigs, OnEnter, Schedule},
+        schedule::{IntoSystemConfigs, OnEnter},
         system::Resource,
         world::World,
     },
@@ -20,13 +20,12 @@ use crate::{http_network::start_server, player_actions::PlayerAction};
 
 use self::{
     client_game_connection::ClientGameConnectionPlugin, game_database::GameDatabasePlugin,
-    game_schedule::GameWorldSimulationSchedule, manage_players_in_games::add_join_and_quit_request,
-    new_game::NewGamePlugin, new_game_http::NewGameHttpPlugin,
+    manage_players_in_games::add_join_and_quit_request, new_game::NewGamePlugin,
+    new_game_http::NewGameHttpPlugin,
 };
 
 pub mod client_game_connection;
 mod game_database;
-pub mod game_schedule;
 mod manage_players_in_games;
 mod new_game;
 mod new_game_http;
@@ -38,7 +37,6 @@ impl Plugin for GameManagerPlugin {
         app.insert_resource(GameIdMapping {
             map: HashMap::new(),
         });
-        app.add_schedule(Schedule::new(GameWorldSimulationSchedule));
         app.add_plugins((
             GameDatabasePlugin,
             NewGameHttpPlugin,

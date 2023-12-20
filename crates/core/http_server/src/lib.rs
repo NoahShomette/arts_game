@@ -35,5 +35,8 @@ pub fn request_access_token(req: &Request<()>) -> Result<String, Error> {
         return Err(Error::from_str(400, "No Authorization Bearer found"));
     };
     let string_at = access_token.to_string();
-    Ok(string_at.split_whitespace().collect::<Vec<&str>>()[1].to_string())
+    let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1].to_string();
+    let (access_token, _) = access_token.split_at(access_token.len() - 2);
+
+    Ok(access_token.to_string())
 }

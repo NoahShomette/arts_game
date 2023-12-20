@@ -23,12 +23,11 @@ impl ObjectIdService {
 
     /// Gets the next available id and ensures that the available ids is at least full
     pub fn next_id(&mut self) -> u32 {
-        let next_id = self.available_ids.pop().unwrap();
-        while self.available_ids.len() < 10 {
+        while self.available_ids.len() < 11 {
             self.available_ids.push(self.max_id_next);
             self.max_id_next = self.max_id_next + 1;
         }
-        next_id
+        self.available_ids.remove(0)
     }
 
     /// Returns an id to the service, making it available to be used again

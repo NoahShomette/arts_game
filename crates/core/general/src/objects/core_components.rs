@@ -1,5 +1,5 @@
 /// Core components every object will have
-use bevy::{ecs::component::Component, math::Vec2, render::color::Color};
+use bevy::{ecs::component::Component, math::Vec2};
 use bevy_state_curves::prelude::SteppedKeyframe;
 use serde::{Deserialize, Serialize};
 
@@ -24,14 +24,6 @@ pub struct ObjectPosition {
 }
 
 impl SteppedKeyframe<ObjectPosition> for ObjectPosition {}
-
-/// A temporary testing keyframe that controls what color an object is
-#[derive(Clone, Component, Serialize, Deserialize, Debug)]
-pub struct ObjectColor {
-    pub color: Color,
-}
-
-impl SteppedKeyframe<ObjectColor> for ObjectColor {}
 
 /// Component that holds what General (Player basically) controls this unit
 #[derive(Clone, Component, Serialize, Deserialize, Debug)]

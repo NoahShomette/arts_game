@@ -10,3 +10,4 @@ edition.workspace = true
 bevy = { workspace = true }
 general = { path = "../general" }
 bevy_state_curves = { workspace = true }
+sqlite_database = { path = "../sqlite_database" }

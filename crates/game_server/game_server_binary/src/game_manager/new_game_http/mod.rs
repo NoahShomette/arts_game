@@ -44,7 +44,7 @@ fn add_new_game_request_to_server(
     game: Res<GameAddrInfo>,
     channel: Res<NewGameCommandsChannel>,
 ) {
-    tide.0.at("/games/request_new_game").get(RequestNewGame {
+    tide.0.at("/games/request_new_game").post(RequestNewGame {
         authentication_server_addr: auth.addr.clone(),
         access_token: client.sign_in_info.access_token.clone(),
         self_server_id: client.sign_in_info.user.id.clone(),
