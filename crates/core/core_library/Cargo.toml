@@ -1,5 +1,5 @@
 [package]
-name = "arts_core"
+name = "core_library"
 authors.workspace = true
 version = "0.1.0"
 edition = "2021"
@@ -7,23 +7,22 @@ license = "MIT OR Apache-2.0"
 
 [features]
 http_server_feature = ["tide", "http_server", "async-trait", "jsonwebtoken"]
+game_generator = ["game_generation"]
+database = ["sqlite_database"]
 
 [dependencies]
-bevy = { workspace = true, features = ["multi-threaded", "bevy_asset"] }
-bevy_state_curves = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-
-# HTTP Client
-ehttp = { workspace = true }
-url = { workspace = true }
-
 # HTTP Networking
 http_server = { path = "../http_server", optional = true }
 tide = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 
-# Security
-sha3 = "0.10.8"
-base64ct = { version = "1.6.0", features = ["alloc"] }
+# Game Generation
+game_generation = { path = "../game_generation", optional = true }
+
+# General
+general = { path = "../general" }
+
+
+# Db
+sqlite_database = { path = "../sqlite_database", optional = true }

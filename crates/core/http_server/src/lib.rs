@@ -1,18 +1,16 @@
-use std::net::SocketAddr;
-
 use bevy::prelude::Resource;
 use tide::{
-    http::headers::HeaderValue,
+    http::{headers::HeaderValue, Url},
     security::{CorsMiddleware, Origin},
-    Server,
+    Error, Request, Server,
 };
 
 /// A resource to hold the Tide Server during plugin construction. Is started at the end of the app plugin cycle
 #[derive(Resource)]
-pub struct TideServerResource(pub Server<()>, pub SocketAddr);
+pub struct TideServerResource(pub Server<()>, pub Url);
 
 impl TideServerResource {
-    pub fn new(addr: SocketAddr) -> Self {
+    pub fn new(addr: Url) -> Self {
         let mut tide = tide::new();
         tide.with(
             CorsMiddleware::new()
@@ -28,6 +26,17 @@ impl TideServerResource {
     }
 }
 
-async fn start_server(tide: Server<()>, address: SocketAddr) -> tide::Result<()> {
+async fn start_server(tide: Server<()>, address: Url) -> tide::Result<()> {
     Ok(tide.listen(address).await?)
+}
+
+pub fn request_access_token(req: &Request<()>) -> Result<String, Error> {
+    let Some(access_token) = req.header("authorization") else {
+        return Err(Error::from_str(400, "No Authorization Bearer found"));
+    };
+    let string_at = access_token.to_string();
+    let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1].to_string();
+    let (access_token, _) = access_token.split_at(access_token.len() - 2);
+
+    Ok(access_token.to_string())
 }

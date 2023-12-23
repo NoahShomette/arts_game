@@ -3,28 +3,51 @@
 //!
 //! Is also responsible though game_manager::save_manager with saving each game into the server files
 
-use arts_core::auth_server::game::GameId;
 use bevy::{
     app::Plugin,
     ecs::{
-        component::Component, entity::Entity, schedule::Schedule, system::Resource, world::World,
+        component::Component,
+        entity::Entity,
+        schedule::{IntoSystemConfigs, OnEnter},
+        system::Resource,
+        world::World,
     },
     utils::HashMap,
 };
+use core_library::{authentication::AppAuthenticationState, game_meta::GameId};
 
-use crate::player_actions::PlayerAction;
+use crate::{http_network::start_server, player_actions::PlayerAction};
 
-use self::{game_schedule::GameWorldSimulationSchedule, save_manager::SaveManagerPlugin};
+use self::{
+    client_game_connection::ClientGameConnectionPlugin, game_database::GameDatabasePlugin,
+    manage_players_in_games::add_join_and_quit_request, new_game::NewGamePlugin,
+    new_game_http::NewGameHttpPlugin,
+};
 
-pub mod game_schedule;
-mod save_manager;
+pub mod client_game_connection;
+mod game_database;
+mod manage_players_in_games;
+mod new_game;
+mod new_game_http;
 
 pub struct GameManagerPlugin;
 
 impl Plugin for GameManagerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_schedule(Schedule::new(GameWorldSimulationSchedule));
-        app.add_plugins(SaveManagerPlugin);
+        app.insert_resource(GameIdMapping {
+            map: HashMap::new(),
+        });
+        app.add_plugins((
+            GameDatabasePlugin,
+            NewGameHttpPlugin,
+            NewGamePlugin,
+            ClientGameConnectionPlugin,
+        ));
+
+        app.add_systems(
+            OnEnter(AppAuthenticationState::Authenticated),
+            add_join_and_quit_request.before(start_server),
+        );
     }
 }
 
@@ -33,7 +56,6 @@ impl Plugin for GameManagerPlugin {
 pub struct GameIdMapping {
     pub map: HashMap<GameId, Entity>,
 }
-
 /// An instance of a game
 #[derive(Component)]
 pub struct GameInstance {

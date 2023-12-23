@@ -1,14 +1,11 @@
 use std::sync::Arc;
 
-use arts_core::http_server::TideServerResource;
-use bevy::{ecs::world::Mut, prelude::Plugin};
-
-use crate::database::Database;
-
 use self::{
-    requests::{Logout, SignIn, SignUp},
+    requests::{AuthenticateUser, RefreshTokenEndpoint, SignIn, SignOut, SignUp},
     supabase::SupabaseConnection,
 };
+use bevy::{ecs::world::Mut, prelude::Plugin};
+use core_library::{http_server::TideServerResource, sqlite_database::Database};
 
 pub mod requests;
 pub mod supabase;
@@ -25,10 +22,16 @@ impl Plugin for AuthenticationPlugin {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });
-                tide.0.at("/auth/sign_out").post(Logout {
+                tide.0.at("/auth/sign_out").post(SignOut {
                     supabase: Arc::new(supabase.clone()),
                 });
                 tide.0.at("/auth/sign_up").post(SignUp {
+                    supabase: Arc::new(supabase.clone()),
+                });
+                tide.0.at("/auth/refresh_token").post(RefreshTokenEndpoint {
+                    supabase: Arc::new(supabase.clone()),
+                });
+                tide.0.at("/auth/authenticate_user").get(AuthenticateUser {
                     supabase: Arc::new(supabase.clone()),
                 });
             });

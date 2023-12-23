@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-arts_core = { path = "../../core/core_library" }
+core_library = { path = "../../core/core_library" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 

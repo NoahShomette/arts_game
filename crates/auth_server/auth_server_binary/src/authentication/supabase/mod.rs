@@ -5,12 +5,30 @@ use std::sync::{
     Arc, Mutex,
 };
 
-use arts_core::authentication::client_authentication::{Claims, PasswordLoginInfo, RefreshToken};
 use bevy::prelude::Resource;
+use core_library::authentication::client_authentication::{
+    Claims, PasswordLoginInfo, RefreshToken,
+};
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
+use serde::{Deserialize, Serialize};
 
 use self::errors::{AuthErrors, AuthOk};
+
+#[derive(Serialize, Deserialize)]
+struct InternalPasswordLoginInfo {
+    email: String,
+    password: String,
+}
+
+impl From<PasswordLoginInfo> for InternalPasswordLoginInfo {
+    fn from(value: PasswordLoginInfo) -> Self {
+        Self {
+            email: value.email().to_string(),
+            password: value.password().to_string(),
+        }
+    }
+}
 
 /// A resource containing meta info connecting the auth server to the supabase instance and communicating supabase interactions in and out via an MPSC
 #[derive(Clone, Debug, Resource)]
@@ -34,7 +52,7 @@ impl SupabaseConnection {
         let decoding_key = DecodingKey::from_secret(secret.as_ref()).into();
         let mut validation = Validation::new(Algorithm::HS256);
         validation.set_audience(&["authenticated"]);
-        let decoded_token = decode::<Claims>(&jwt, &decoding_key, &validation);
+        let decoded_token = decode::<Claims>(jwt, &decoding_key, &validation);
 
         match decoded_token {
             Ok(token_data) => {
@@ -78,12 +96,11 @@ impl SupabaseConnection {
         &self,
         sign_up_info: PasswordLoginInfo,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
-        let supabase = self.clone();
-        let request_url: String = format!("{}/auth/v1/signup", supabase.url);
+        let request_url: String = format!("{}/auth/v1/signup", self.url);
 
         let mut request = ehttp::Request::post(
             request_url,
-            serde_json::to_string(&sign_up_info)
+            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_up_info))
                 .unwrap()
                 .as_bytes()
                 .to_vec(),
@@ -91,7 +108,7 @@ impl SupabaseConnection {
 
         request
             .headers
-            .insert("apikey".to_string(), supabase.api_key.clone());
+            .insert("apikey".to_string(), self.api_key.clone());
         request
             .headers
             .insert("Content-Type".to_string(), "application/json".to_string());
@@ -110,7 +127,7 @@ impl SupabaseConnection {
 
         let mut request = ehttp::Request::post(
             request_url,
-            serde_json::to_string(&sign_in_info)
+            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_in_info))
                 .unwrap()
                 .as_bytes()
                 .to_vec(),
@@ -159,10 +176,6 @@ impl SupabaseConnection {
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/logout", self.url);
 
-        if self.jwt_valid(&access_token).is_err() {
-            return Err(AuthErrors::Basic("Invalid Access Token".to_owned()));
-        }
-
         let mut request = ehttp::Request::get(request_url);
 
         request
@@ -172,7 +185,7 @@ impl SupabaseConnection {
             .headers
             .insert("Content-Type".to_string(), "application/json".to_string());
         request.headers.insert(
-            "autherization".to_string(),
+            "authorization".to_string(),
             format!("Bearer {}", access_token),
         );
 

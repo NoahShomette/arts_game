@@ -8,8 +8,14 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-arts_core = { path = "../../core/core_library", features = ["http_server_feature"] }
-bevy = { workspace = true }
+core_library = { path = "../../core/core_library", features = [
+    "http_server_feature",
+    "game_generator",
+    "database",
+] }
+bevy = { workspace = true, default-features = false, features = [
+    'multi-threaded',
+] }
 bevy_state_curves = { workspace = true }
 clap = { version = "4.4.8", features = ["derive"] }
 
@@ -21,4 +27,8 @@ bevy_eventwork_mod_websockets = { workspace = true }
 ehttp = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-rusqlite = { version = "0.30.0", features = ["bundled"] }
+rusqlite = { workspace = true, features = ["bundled"] }
+tide = { workspace = true }
+
+# Local Dependencies
+console_parser = { path = "../console_parser" }

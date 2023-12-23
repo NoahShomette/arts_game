@@ -20,7 +20,7 @@ Platforms marked as `Planned` are not currently supported but we plan/are workin
 
 Mobile are high on the list to get working early in the games development as they are core to players being able to actually play the game
 
-Any other platform is not officiallysupported.
+Any other platform is not officially supported.
 
 #### Desktop: Windows/Mac/PC
 
@@ -28,11 +28,11 @@ Any other platform is not officiallysupported.
 
 #### Web
 
-- [ ] Web | `Supported`
+- [ ] `Supported`
 
 #### Mobile: Iphone/Android
 
-- [ ] Mobile: Iphone/Android | `Planned`
+- [ ] `Planned`
 
 ## Playing
 

@@ -1,14 +1,17 @@
 use std::sync::Arc;
 
-use arts_core::auth_server::{
-    game::GameId,
-    player_data::{PlayerGames, PlayerGamesResponse},
-};
 use async_trait::async_trait;
 use bevy::utils::Uuid;
-use tide::{http::Url, Endpoint, Error, Request};
+use core_library::{
+    auth_server::player_data::{PlayerGames, PlayerGamesResponse},
+    game_meta::GameId,
+};
+use tide::{http::Url, Endpoint, Request};
 
-use crate::{authentication::supabase::SupabaseConnection, database::Database};
+use crate::authentication::supabase::SupabaseConnection;
+use crate::user_management::verify_decode_jwt;
+
+use core_library::sqlite_database::Database;
 
 /// A request to register a new game and return that result to the game server.
 ///
@@ -41,17 +44,7 @@ async fn request_player_games(
     supabase: &SupabaseConnection,
     database: &Database,
 ) -> tide::Result {
-    let Some(access_token) = req.header("authorization") else {
-        return Err(Error::from_str(400, "No Authorization Bearer found"));
-    };
-
-    let string_at = access_token.to_string();
-
-    let access_token = string_at.split_whitespace().collect::<Vec<&str>>()[1];
-
-    let Ok(claims) = supabase.jwt_valid(access_token) else {
-        return Err(Error::from_str(403, "Invalid Acess Token"));
-    };
+    let claims = verify_decode_jwt(&req, supabase)?;
     let mut games_mapped: Vec<(GameId, Url, i32)> = vec![];
     if let Ok(connection) = database.connection.lock() {
         {
