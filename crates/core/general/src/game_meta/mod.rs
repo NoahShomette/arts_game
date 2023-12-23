@@ -74,7 +74,7 @@ impl MapSize {
             MapSize::Small => Vec2::new(200.0, 200.0),
             MapSize::Medium => Vec2::new(300.0, 300.0),
             MapSize::Large => Vec2::new(400.0, 400.0),
-            MapSize::Custom { dimensions } => dimensions.clone(),
+            MapSize::Custom { dimensions } => *dimensions,
         }
     }
 }
@@ -107,17 +107,12 @@ impl MapPointCount {
 }
 
 /// Holds the [`AccountId`]s of every player that is actually playing in the game
-#[derive(Serialize, Deserialize, Clone, Component)]
+#[derive(Serialize, Deserialize, Clone, Component, Default)]
 pub struct GamePlayers {
     pub players: Vec<AccountId>,
 }
 
 impl GamePlayers {
-    /// Creates a new Connected Players
-    pub fn new() -> GamePlayers {
-        GamePlayers { players: vec![] }
-    }
-
     /// Creates a new Connected Players with the given id in it
     pub fn new_with_id(player_id: AccountId) -> GamePlayers {
         GamePlayers {

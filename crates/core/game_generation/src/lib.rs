@@ -24,9 +24,9 @@ pub fn create_game_world(
 ) -> World {
     let mut game_world = World::new();
     game_world.insert_resource(id_service.clone());
-    game_world.insert_resource(game_id.clone());
-    game_world.add_schedule(SaveSchedule::new());
-    game_world.add_schedule(GameWorldSimulationSchedule::new());
+    game_world.insert_resource(*game_id);
+    game_world.add_schedule(SaveSchedule::new_schedule());
+    game_world.add_schedule(GameWorldSimulationSchedule::new_schedule());
     game_world_setup_saving(server_world, &mut game_world);
     game_world
 }
@@ -55,7 +55,7 @@ pub fn insert_new_game_state(
         );
 
         let id = id_service.new_object_id();
-        let Some(row) = InsertGameCurvesRow::new_row(new_game_id.clone(), &id, None, &pos) else {
+        let Some(row) = InsertGameCurvesRow::new_row(*new_game_id, &id, None, &pos) else {
             continue;
         };
         let _ = insert_game_curves_row.sender_channel.send(row);

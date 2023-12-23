@@ -73,11 +73,12 @@ impl Clone for Claims {
 #[derive(Resource, Clone)]
 pub struct AuthClient {
     pub sender_channel: Sender<Result<(AuthenticationResponses, Response), String>>,
+    #[allow(clippy::type_complexity)]
     pub reciever_channel: Arc<Mutex<Receiver<Result<(AuthenticationResponses, Response), String>>>>,
 }
 
-impl AuthClient {
-    pub fn new() -> Self {
+impl Default for AuthClient {
+    fn default() -> Self {
         let (sender, reciever) =
             mpsc::channel::<Result<(AuthenticationResponses, Response), String>>();
 

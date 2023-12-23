@@ -46,6 +46,7 @@ struct AppCommands {
 }
 
 #[derive(Subcommand)]
+#[allow(clippy::enum_variant_names)]
 enum SubCommands {
     /// Signs up as a server account using the provided email and password
     SignUp { email: String, password: String },
@@ -98,7 +99,7 @@ fn try_parse_stdin(
 ) {
     for stdin_line in event_reader.read() {
         let mut line = vec![];
-        for word in stdin_line.line.trim().split_whitespace() {
+        for word in stdin_line.line.split_whitespace() {
             line.push(word);
         }
         match AppCommands::try_parse_from(line) {

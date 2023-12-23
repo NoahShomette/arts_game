@@ -26,15 +26,9 @@ pub struct ObjectPosition {
 impl SteppedKeyframe<ObjectPosition> for ObjectPosition {}
 
 /// Component that holds what General (Player basically) controls this unit
-#[derive(Clone, Component, Serialize, Deserialize, Debug)]
+#[derive(Clone, Component, Serialize, Deserialize, Debug, Default)]
 pub struct ObjectGeneral {
     id: Option<AccountId>,
-}
-
-impl Default for ObjectGeneral {
-    fn default() -> Self {
-        Self { id: None }
-    }
 }
 
 impl SteppedKeyframe<ObjectGeneral> for ObjectGeneral {}

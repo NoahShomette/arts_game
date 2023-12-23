@@ -37,7 +37,7 @@ impl Endpoint<()> for RequestNewGame {
             self.access_token.clone(),
             self.authentication_server_addr.clone(),
             self.game_ip.clone(),
-            self.self_server_id.clone(),
+            self.self_server_id,
             self.channel.clone(),
         )
         .await
@@ -68,7 +68,7 @@ async fn request_new_game(
         Some(text) => {
             let claims: Claims = serde_json::from_str(text).unwrap();
             match Uuid::parse_str(&claims.sub) {
-                Ok(id) => Some(AccountId { id: id }),
+                Ok(id) => Some(AccountId { id }),
                 Err(_) => None,
             }
         }
@@ -152,12 +152,10 @@ async fn request_new_game_id(
             200 => {
                 let new_game_id: RequestNewGameIdResponse =
                     serde_json::from_str(response.text().unwrap()).unwrap();
-                return Ok(new_game_id.game_id);
+                Ok(new_game_id.game_id)
             }
-            _ => return Err(Error::from_str(response.status, response.status_text)),
+            _ => Err(Error::from_str(response.status, response.status_text)),
         },
-        Err(err) => {
-            return Err(Error::from_str(500, err));
-        }
-    };
+        Err(err) => Err(Error::from_str(500, err)),
+    }
 }

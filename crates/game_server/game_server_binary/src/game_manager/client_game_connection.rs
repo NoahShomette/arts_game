@@ -75,7 +75,7 @@ fn handle_connecting_to_games(
         let player_access_token = message.access_token.clone();
         let auth_server_addr = auth_server.addr.clone();
         let sender = channel.sender_channel.clone();
-        let game_id = message.game_id.clone();
+        let game_id = message.game_id;
         let account_id = message.player_id.clone();
 
         run_async(
@@ -92,14 +92,11 @@ fn handle_connecting_to_games(
 
     if let Ok(receiver) = channel.reciever_channel.try_lock() {
         while let Ok(respones) = receiver.try_recv() {
-            match respones.0 {
-                Some((game_id, account_id)) => {
-                    event_writer.send(AddConnectedPlayerToGameEvent {
-                        game_id: game_id,
-                        player_id: account_id,
-                    });
-                }
-                None => {}
+            if let Some((game_id, account_id)) = respones.0 {
+                event_writer.send(AddConnectedPlayerToGameEvent {
+                    game_id,
+                    player_id: account_id,
+                });
             }
         }
     }
@@ -148,7 +145,7 @@ fn add_connected_player_to_game(
                 // update the players id to game id mapping
                 player_game_id_mapping
                     .map
-                    .insert(message.player_id.clone(), Some(message.game_id.clone()));
+                    .insert(message.player_id.clone(), Some(message.game_id));
             }
         }
     }
@@ -162,24 +159,20 @@ fn remove_connected_player_from_game(
 ) {
     for message in new_messages.read() {
         // If the player is in a game then we remove the player from that games connected players, otherwise we do nothing
-        if let Some(game_id) = player_game_id_mapping.map.get(&message.player_id) {
-            if let Some(game_id) = game_id {
-                // Get the games entity
-                if let Some(game_entity) = game_id_mapping.map.get(game_id) {
-                    // Get the game components
-                    if let Ok(players) = games.get_mut(*game_entity) {
-                        if let Some(mut players) = players {
-                            // insert the player into the games connected players
-                            players.remove(&message.player_id);
-                        }
-                    }
+        if let Some(Some(game_id)) = player_game_id_mapping.map.get(&message.player_id) {
+            // Get the games entity
+            if let Some(game_entity) = game_id_mapping.map.get(game_id) {
+                // Get the game components
+                if let Ok(Some(mut players)) = games.get_mut(*game_entity) {
+                    // insert the player into the games connected players
+                    players.remove(&message.player_id);
                 }
-
-                // remove the PlayerId -> GameId mapping for the player
-                player_game_id_mapping
-                    .map
-                    .insert(message.player_id.clone(), None);
             }
+
+            // remove the PlayerId -> GameId mapping for the player
+            player_game_id_mapping
+                .map
+                .insert(message.player_id.clone(), None);
         }
     }
 }

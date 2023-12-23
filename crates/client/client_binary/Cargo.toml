@@ -21,4 +21,3 @@ bevy_eventwork_mod_websockets = { workspace = true }
 
 # HTTP Networking
 ehttp = { workspace = true }
-web-sys = { workspace = true }

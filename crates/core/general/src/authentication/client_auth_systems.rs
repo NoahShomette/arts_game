@@ -63,7 +63,7 @@ pub fn sign_up(
                             .send(Ok((AuthenticationResponses::SignUp(login.info), response)));
                     }
                     Err(err) => {
-                        let _ = supabase.sender_channel.send(Err(format!("{}", err)));
+                        let _ = supabase.sender_channel.send(Err(err.to_string()));
                     }
                 };
             },
@@ -114,7 +114,7 @@ pub fn sign_in(
                             .send(Ok((AuthenticationResponses::SignIn, response)));
                     }
                     Err(err) => {
-                        let _ = supabase.sender_channel.send(Err(format!("{}", err)));
+                        let _ = supabase.sender_channel.send(Err(err.to_string()));
                     }
                 };
             },
@@ -171,7 +171,7 @@ pub fn sign_out(
                                 .send(Ok((AuthenticationResponses::SignOut, response)));
                         }
                         Err(err) => {
-                            let _ = auth_client.sender_channel.send(Err(format!("{}", err)));
+                            let _ = auth_client.sender_channel.send(Err(err.to_string()));
                         }
                     };
                 },

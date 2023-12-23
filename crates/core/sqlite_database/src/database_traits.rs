@@ -14,7 +14,7 @@ pub trait DatabaseData {
         };
         Some(PureDatabaseData {
             column_name: self.column_name().to_string(),
-            data: data,
+            data,
         })
     }
 }

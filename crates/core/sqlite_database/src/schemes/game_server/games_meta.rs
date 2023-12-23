@@ -23,7 +23,7 @@ impl DatabaseSql for InsertGamesMetaRow {
                 "insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, owning_player) values (?1, ?2, ?3, ?4, ?5, ?6, ?7)".to_string(),
                 vec![
                     game_id,
-                    serde_json::to_string(&GamePlayers::new())
+                    serde_json::to_string(&GamePlayers::default())
                     .unwrap(),
                     self.max_players.to_string(),
                     0.to_string(),
@@ -38,7 +38,7 @@ impl DatabaseSql for InsertGamesMetaRow {
                 "insert into games_meta (game_id, game_players, max_players, game_state, has_space,  object_id_service) values (?1, ?2, ?3, ?4, ?5, ?6)".to_string(),
                 vec![
                     game_id,
-                    serde_json::to_string(&GamePlayers::new())
+                    serde_json::to_string(&GamePlayers::default())
                     .unwrap(),
                     self.max_players.to_string(),
                     0.to_string(),

@@ -150,16 +150,14 @@ fn handle_connection_events(
     for event in network_events.read() {
         match event {
             NetworkEvent::Connected(conn_id) => {
-                connection_id_mapping.map.insert(conn_id.clone(), None);
+                connection_id_mapping.map.insert(*conn_id, None);
             }
             NetworkEvent::Disconnected(conn_id) => {
                 // If we have a player id then we send an event to remove it from any games that it may or may not be in
-                if let Some(player_id) = connection_id_mapping.map.get(conn_id) {
-                    if let Some(player_id) = player_id {
-                        remove_players.send(RemoveConnectedPlayerFromGameEvent {
-                            player_id: player_id.clone(),
-                        })
-                    }
+                if let Some(Some(player_id)) = connection_id_mapping.map.get(conn_id) {
+                    remove_players.send(RemoveConnectedPlayerFromGameEvent {
+                        player_id: player_id.clone(),
+                    })
                 }
                 connection_id_mapping.map.remove(conn_id);
             }

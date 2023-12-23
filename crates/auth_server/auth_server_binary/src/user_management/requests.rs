@@ -62,7 +62,7 @@ async fn request_player_games(
             })?;
 
             for game in games {
-                let game: PlayerGames = serde_json::from_str(&game?.player_games).unwrap();
+                let game: PlayerGames = serde_json::from_str(&game?.player_games)?;
 
                 for game in game.current_games.iter() {
                     let mut stmt = connection.prepare(&format!(
@@ -92,14 +92,15 @@ async fn request_player_games(
             }
         }
     }
-    Ok(tide::Response::builder(200)
-        .body(
-            serde_json::to_string(&PlayerGamesResponse {
-                player_games: games_mapped,
-            })
-            .unwrap(),
-        )
-        .build())
+
+    let response = match serde_json::to_string(&PlayerGamesResponse {
+        player_games: games_mapped,
+    }) {
+        Ok(body) => body.as_bytes().to_vec(),
+        Err(err) => return Err(Error::from_str(500, err)),
+    };
+
+    Ok(tide::Response::builder(200).body(response).build())
 }
 
 /// A request to set a players username.
@@ -161,27 +162,28 @@ async fn set_player_username(
             }
         }
     }
-    Ok(tide::Response::builder(200)
-        .body(
-            serde_json::to_string(&SetPlayerUsernameResponse {
-                new_username: request.request.username.clone(),
-            })
-            .unwrap(),
-        )
-        .build())
+
+    let response = match serde_json::to_string(&SetPlayerUsernameResponse {
+        new_username: request.request.username.clone(),
+    }) {
+        Ok(body) => body.as_bytes().to_vec(),
+        Err(err) => return Err(Error::from_str(500, err)),
+    };
+
+    Ok(tide::Response::builder(200).body(response).build())
 }
 
 /// Returns true if the username is valid. Returns false if it is not allowed
 fn is_valid_username(username: &str) -> Result<(), String> {
     if username.is(Type::MODERATE_OR_HIGHER) {
-        return Err("Contains banned words".to_string());
+        Err("Contains banned words".to_string())
     } else if username.chars().count() >= MAX_USERNAME_LENGTH {
-        return Err(format!(
+        Err(format!(
             "Username is longer than the allowed limit: {} characters",
             MAX_USERNAME_LENGTH
-        ));
+        ))
     } else {
-        return Ok(());
+        Ok(())
     }
 }
 

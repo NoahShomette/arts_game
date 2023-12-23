@@ -42,10 +42,9 @@ pub struct AsyncChannelSender<T> {
 pub fn clone_async_sender<T: 'static + Send + Sync + Clone>(
     server_world: &World,
 ) -> Option<AsyncChannelSender<T>> {
-    return match server_world.get_resource::<AsyncChannelSender<T>>() {
-        Some(resource) => Some(resource.clone()),
-        None => None::<AsyncChannelSender<T>>,
-    };
+    server_world
+        .get_resource::<AsyncChannelSender<T>>()
+        .cloned()
 }
 
 /// Creates an [`AsyncChannelSender`] and an [`AsyncChannelReceiver`] for the given type

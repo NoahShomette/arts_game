@@ -91,13 +91,13 @@ pub struct NewGameCommand {
 
 impl Command for NewGameCommand {
     fn apply(self, server_world: &mut bevy::prelude::World) {
-        let max_players = self.new_game_settings.max_player_count.clone();
+        let max_players = self.new_game_settings.max_player_count;
         let mut id_service = ObjectIdService::new();
 
         server_world.resource_scope(
             |_world: &mut World, channel: Mut<AsyncChannelSender<InsertGamesMetaRow>>| {
                 let _ = channel.sender_channel.send(InsertGamesMetaRow {
-                    game_id: self.new_game_id.clone(),
+                    game_id: self.new_game_id,
                     max_players,
                     object_id_service: id_service.clone(),
                     owning_player: self.owning_player,
@@ -107,14 +107,14 @@ impl Command for NewGameCommand {
         server_world.resource_scope(
             |_world: &mut World, channel: Mut<AsyncChannelSender<CreateGameCurvesTable>>| {
                 let _ = channel.sender_channel.send(CreateGameCurvesTable {
-                    game_id: self.new_game_id.clone(),
+                    game_id: self.new_game_id,
                 });
             },
         );
         server_world.resource_scope(
             |_world: &mut World, channel: Mut<AsyncChannelSender<CreateGamePlayersTable>>| {
                 let _ = channel.sender_channel.send(CreateGamePlayersTable {
-                    game_id: self.new_game_id.clone(),
+                    game_id: self.new_game_id,
                 });
             },
         );

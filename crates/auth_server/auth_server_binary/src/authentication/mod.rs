@@ -17,7 +17,9 @@ impl Plugin for AuthenticationPlugin {
         app.insert_resource(SupabaseConnection::new(None, None));
         app.world.resource_scope(|world, database: Mut<Database>| {
             world.resource_scope(|world, mut tide: Mut<TideServerResource>| {
-                let supabase = world.get_resource::<SupabaseConnection>().unwrap();
+                let supabase = world
+                    .get_resource::<SupabaseConnection>()
+                    .expect("SupabaseConnection must be in the world when starting TideServer");
                 tide.0.at("/auth/sign_in").post(SignIn {
                     supabase: Arc::new(supabase.clone()),
                 });

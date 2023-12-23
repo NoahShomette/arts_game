@@ -4,7 +4,8 @@ use bevy::ecs::schedule::{Schedule, ScheduleLabel};
 pub struct GameWorldSimulationSchedule;
 
 impl GameWorldSimulationSchedule {
-    pub fn new() -> Schedule {
+    #[allow(clippy::let_and_return)]
+    pub fn new_schedule() -> Schedule {
         let schedule = Schedule::new(GameWorldSimulationSchedule);
         //schedule.add_systems();
 

@@ -30,11 +30,7 @@ pub async fn auth_user_request(
     );
 
     match ehttp::fetch_async(request).await {
-        Ok(response) => {
-            return Ok(response);
-        }
-        Err(err) => {
-            return Err(Error::from_str(500, err));
-        }
-    };
+        Ok(response) => Ok(response),
+        Err(err) => Err(Error::from_str(500, err)),
+    }
 }

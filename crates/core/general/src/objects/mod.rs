@@ -13,6 +13,12 @@ pub struct ObjectIdService {
     available_ids: Vec<u32>,
 }
 
+impl Default for ObjectIdService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ObjectIdService {
     pub fn new() -> ObjectIdService {
         ObjectIdService {
@@ -25,7 +31,7 @@ impl ObjectIdService {
     pub fn next_id(&mut self) -> u32 {
         while self.available_ids.len() < 11 {
             self.available_ids.push(self.max_id_next);
-            self.max_id_next = self.max_id_next + 1;
+            self.max_id_next += 1;
         }
         self.available_ids.remove(0)
     }
@@ -33,7 +39,7 @@ impl ObjectIdService {
     /// Returns an id to the service, making it available to be used again
     pub fn return_id(&mut self, id: u32) {
         self.available_ids.push(id);
-        self.available_ids.sort_by(|a, b| a.cmp(b));
+        self.available_ids.sort();
     }
 
     /// Returns a new [`ObjectId`] with a valid id

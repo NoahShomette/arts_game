@@ -49,7 +49,7 @@ impl SupabaseConnection {
     pub fn jwt_valid(&self, jwt: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
         let secret = self.jwt.clone();
 
-        let decoding_key = DecodingKey::from_secret(secret.as_ref()).into();
+        let decoding_key = DecodingKey::from_secret(secret.as_ref());
         let mut validation = Validation::new(Algorithm::HS256);
         validation.set_audience(&["authenticated"]);
         let decoded_token = decode::<Claims>(jwt, &decoding_key, &validation);
@@ -86,7 +86,7 @@ impl SupabaseConnection {
         SupabaseConnection {
             url: url.to_string(),
             api_key: api_key.to_string(),
-            jwt: jwt,
+            jwt,
             sender_channel: sender,
             reciever_channel: Arc::new(Mutex::new(reciever)),
         }
@@ -98,13 +98,12 @@ impl SupabaseConnection {
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/signup", self.url);
 
-        let mut request = ehttp::Request::post(
-            request_url,
-            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_up_info))
-                .unwrap()
-                .as_bytes()
-                .to_vec(),
-        );
+        let body = match serde_json::to_string(&InternalPasswordLoginInfo::from(sign_up_info)) {
+            Ok(body) => body.as_bytes().to_vec(),
+            Err(err) => return Err(AuthErrors::Basic(err.to_string())),
+        };
+
+        let mut request = ehttp::Request::post(request_url, body);
 
         request
             .headers
@@ -115,7 +114,7 @@ impl SupabaseConnection {
 
         match ehttp::fetch_async(request).await {
             Ok(response) => Ok(response),
-            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
+            Err(err) => Err(AuthErrors::Basic(err.to_string())),
         }
     }
 
@@ -125,13 +124,12 @@ impl SupabaseConnection {
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=password", self.url);
 
-        let mut request = ehttp::Request::post(
-            request_url,
-            serde_json::to_string(&InternalPasswordLoginInfo::from(sign_in_info))
-                .unwrap()
-                .as_bytes()
-                .to_vec(),
-        );
+        let body = match serde_json::to_string(&InternalPasswordLoginInfo::from(sign_in_info)) {
+            Ok(body) => body.as_bytes().to_vec(),
+            Err(err) => return Err(AuthErrors::Basic(err.to_string())),
+        };
+
+        let mut request = ehttp::Request::post(request_url, body);
 
         request
             .headers
@@ -142,7 +140,7 @@ impl SupabaseConnection {
 
         match ehttp::fetch_async(request).await {
             Ok(response) => Ok(response),
-            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
+            Err(err) => Err(AuthErrors::Basic(err.to_string())),
         }
     }
 
@@ -152,10 +150,12 @@ impl SupabaseConnection {
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=refresh_token", self.url);
 
-        let mut request = ehttp::Request::post(
-            request_url,
-            serde_json::to_string(&refresh).unwrap().as_bytes().to_vec(),
-        );
+        let body = match serde_json::to_string(&refresh) {
+            Ok(body) => body.as_bytes().to_vec(),
+            Err(err) => return Err(AuthErrors::Basic(err.to_string())),
+        };
+
+        let mut request = ehttp::Request::post(request_url, body);
 
         request
             .headers
@@ -166,7 +166,7 @@ impl SupabaseConnection {
 
         match ehttp::fetch_async(request).await {
             Ok(response) => Ok(response),
-            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
+            Err(err) => Err(AuthErrors::Basic(err.to_string())),
         }
     }
 
@@ -191,7 +191,7 @@ impl SupabaseConnection {
 
         match ehttp::fetch_async(request).await {
             Ok(response) => Ok(response),
-            Err(err) => Err(AuthErrors::Basic(format!("{}", err))),
+            Err(err) => Err(AuthErrors::Basic(err.to_string())),
         }
     }
 }

@@ -1,5 +1,9 @@
+use self::client_authentication::{AuthClient, Claims};
+use self::{
+    client_auth_systems::{receive_auth_results, sign_in, sign_out, sign_up},
+    client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
+};
 use bevy::ecs::schedule::common_conditions::in_state;
-use bevy::utils::Uuid;
 use bevy::{
     app::{Plugin, Update},
     ecs::{
@@ -10,12 +14,7 @@ use bevy::{
 use serde::de::{self};
 use serde::{Deserialize, Deserializer, Serialize};
 use url::Url;
-
-use self::client_authentication::{AuthClient, Claims};
-use self::{
-    client_auth_systems::{receive_auth_results, sign_in, sign_out, sign_up},
-    client_authentication::{SignInEvent, SignOutEvent, SignUpEvent},
-};
+use uuid::Uuid;
 
 mod client_auth_systems;
 pub mod client_authentication;
@@ -24,7 +23,7 @@ pub struct CoreAuthenticationPlugin;
 
 impl Plugin for CoreAuthenticationPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(AuthClient::new());
+        app.insert_resource(AuthClient::default());
         app.init_resource::<AuthenticationServerInfo>();
         app.add_state::<AppAuthenticationState>();
         app.add_event::<SignInEvent>()

@@ -38,7 +38,7 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
     let game_id = Uuid::new_v4();
     if let Ok(mut connection) = database.connection.try_lock() {
         let account_id = serde_json::to_string(&AccountId {
-            id: request.request.server_id.clone(),
+            id: request.request.server_id,
         })?;
         {
             println!(
@@ -69,7 +69,7 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
         };
         let _ = tx.execute(
             "insert into game_info (game_id, game_ip, is_open, in_progress, hosting_server_id, server_type) values (?1, ?2, ?3, ?4, ?5, ?6)",
-            &[
+            [
                 &game_id.to_string(),
                 &game_addr,
                 "1",
@@ -80,12 +80,13 @@ async fn request_new_game(mut req: Request<()>, database: &Database) -> tide::Re
         );
         tx.commit()?;
     }
-    Ok(tide::Response::builder(200)
-        .body(
-            serde_json::to_string(&RequestNewGameIdResponse {
-                game_id: GameId { id: game_id },
-            })
-            .unwrap(),
-        )
-        .build())
+
+    let response = match serde_json::to_string(&RequestNewGameIdResponse {
+        game_id: GameId { id: game_id },
+    }) {
+        Ok(body) => body.as_bytes().to_vec(),
+        Err(err) => return Err(Error::from_str(500, err)),
+    };
+
+    Ok(tide::Response::builder(200).body(response).build())
 }

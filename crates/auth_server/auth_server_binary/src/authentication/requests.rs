@@ -1,7 +1,4 @@
-use std::sync::Arc;
-
 use bevy::log::info;
-use bevy::utils::Uuid;
 use core_library::auth_server::player_data::PlayerGames;
 use core_library::auth_server::AccountId;
 use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
@@ -9,8 +6,10 @@ use core_library::authentication::SignUpResponse;
 use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
 use core_library::sqlite_database::Database;
+use std::sync::Arc;
 use tide::utils::async_trait;
 use tide::{Endpoint, Error, Request};
+use uuid::Uuid;
 
 use crate::user_management::verify_decode_jwt;
 
@@ -38,12 +37,10 @@ async fn sign_up(
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let is_player = request.request.is_player();
     let result = supabase.sign_up_password(request.request).await?;
-    println!("{}", result.text().unwrap());
-
     if let Ok(mut connection) = database.connection.try_lock() {
         if let Some(result_text) = result.text() {
             let v: SignUpResponse = serde_json::from_str(result_text)?;
-            let _user_id = v.id.clone();
+            let _user_id = v.id;
             let account_id = serde_json::to_string(&AccountId { id: _user_id })?;
             let tx = connection.transaction()?;
 
@@ -59,12 +56,12 @@ async fn sign_up(
                             Err(_) => {
                                 let _ = tx.execute(
                                 "insert into player_data (player_id, player_games, username) values (?1, ?2, ?3)",
-                                &[
+                                [
                                     &account_id,
                                     &serde_json::to_string(&PlayerGames {
                                         current_games: vec![],
                                     })
-                                    .unwrap(),
+                                    .expect("Creates a default PlayerGames. Should always be valid"),
                                     &Uuid::new_v4().to_string(),
                                 ],
                             );
@@ -83,7 +80,7 @@ async fn sign_up(
                             Err(_) => {
                                 let _ = tx.execute(
                                     "insert into server_data (server_id, server_type) values (?1, ?2)",
-                                    &[&account_id, &serde_json::to_string(&0).unwrap()],
+                                    [&account_id, &serde_json::to_string(&0).expect("Serializing 0 should always be valid")],
                                 );
                             }
                         }

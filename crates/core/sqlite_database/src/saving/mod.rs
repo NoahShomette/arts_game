@@ -38,7 +38,7 @@ pub struct SaveSchedule;
 
 impl SaveSchedule {
     /// Creates a new Schedule with all the neccesary save schedule systems
-    pub fn new() -> Schedule {
+    pub fn new_schedule() -> Schedule {
         let mut schedule = Schedule::new(SaveSchedule);
         schedule.add_systems((
             save_component::<GameCurvesTable, ObjectId, SteppedCurve<ObjectPosition>>,
@@ -53,6 +53,7 @@ impl SaveSchedule {
 pub struct ExistsInDatabase;
 
 /// Fn that sends an UpdateRow message for any component that has changed and has an [`ExistsInDatabase`] component. Note that when
+#[allow(clippy::type_complexity)]
 fn save_component<
     Table: Resource + GameDatabaseTable,
     RowId: Component + DatabaseData,
@@ -76,7 +77,7 @@ fn save_component<
         };
         let _ = update_row_channel.sender_channel.send(UpdateRow {
             table_name: table.table_name(&game_id),
-            row_id: row_id,
+            row_id,
             database_data: vec![data],
         });
     }

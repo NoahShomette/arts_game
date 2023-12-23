@@ -47,7 +47,7 @@ fn add_new_game_request_to_server(
     tide.0.at("/games/request_new_game").post(RequestNewGame {
         authentication_server_addr: auth.addr.clone(),
         access_token: client.sign_in_info.access_token.clone(),
-        self_server_id: client.sign_in_info.user.id.clone(),
+        self_server_id: client.sign_in_info.user.id,
         game_ip: game.clone(),
         channel: channel.clone(),
     });
