@@ -57,3 +57,4 @@ jsonwebtoken = { version = "9.1.0" }
 bevy_eventwork = { git = "https://github.com/NoahShomette/bevy_eventwork.git", branch = "wasm_core_features", default-features = false }
 bevy_eventwork_mod_websockets = { git = "https://github.com/NoahShomette/bevy_eventwork_mod_websockets.git" }
 uuid = { version = "1.6.1" }
+rustrict = { version = "0.7.20" }
