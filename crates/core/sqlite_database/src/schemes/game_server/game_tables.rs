@@ -89,11 +89,11 @@ impl DatabaseSql for InsertGameCurvesRow {
         match &self.object_general {
         Some(object_general) => {
                 Some((format!("insert into \"game_curves_{}\" (object_id, sc_object_general, sc_object_position) values (?1, ?2, ?3)", game_id),
-            vec![ 
+            vec![
                 self.object_id.data.clone(),
                 object_general.data.clone(),
                 self.object_position.data.clone(),
-            ],))
+                ],))
             }
             None => Some((format!("insert into \"game_curves_{}\" (object_id, sc_object_general, sc_object_position) values (?1, ?2, ?3)", game_id),
             vec![

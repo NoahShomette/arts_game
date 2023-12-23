@@ -28,7 +28,7 @@ use crate::{
 pub struct DatabaseSavePlugin;
 
 impl Plugin for DatabaseSavePlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, _app: &mut App) {}
 }
 
 /// A schedule that will check for any components that have changed since the last time it was run and will send
@@ -82,6 +82,6 @@ fn save_component<
     }
 
     for entity in removed_components.read() {
-        if let Some(mut entity_commands) = commands.get_entity(entity) {}
+        if let Some(mut _entity_commands) = commands.get_entity(entity) {}
     }
 }

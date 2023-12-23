@@ -21,7 +21,7 @@ pub mod player;
 #[derive(Resource)]
 pub struct TaskPoolRes(pub TaskPool);
 
-/// Receiver half of an [`MPSC`] Channel
+/// Receiver half of an [`mpsc`] Channel
 ///
 /// For game world related purposes this is kept in the main world and receives messages
 ///  from games and processes all games messages of the same type at the same time.
@@ -30,7 +30,7 @@ pub struct AsyncChannelReceiver<T> {
     pub reciever_channel: Arc<Mutex<Receiver<T>>>,
 }
 
-/// Sender half of an [`MPSC`] Channel
+/// Sender half of an [`mpsc`] Channel
 ///
 /// For game world related purposes this is cloned to each game world and is used to queue commands
 #[derive(Resource, Clone)]
@@ -38,7 +38,7 @@ pub struct AsyncChannelSender<T> {
     pub sender_channel: Sender<T>,
 }
 
-/// Clones the [`AsyncReceiver`] of the given type if it exists in the world. Should be used on the server_world
+/// Clones the [`AsyncChannelReceiver`] of the given type if it exists in the world. Should be used on the server_world
 pub fn clone_async_sender<T: 'static + Send + Sync + Clone>(
     server_world: &World,
 ) -> Option<AsyncChannelSender<T>> {

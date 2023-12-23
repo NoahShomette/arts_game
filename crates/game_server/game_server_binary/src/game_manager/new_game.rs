@@ -130,6 +130,3 @@ impl Command for NewGameCommand {
         });
     }
 }
-
-/// Contains the neccessary information to create all the games required tables
-struct NewGameInfo {}

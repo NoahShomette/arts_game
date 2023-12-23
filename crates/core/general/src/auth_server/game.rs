@@ -19,7 +19,7 @@ pub struct RequestNewGameRequest {
     pub game_addr: GameAddrInfo,
 }
 
-/// Ok response returned from [`RequestNewGameRequests`]
+/// Ok response returned from [`RequestNewGameRequest`]
 ///
 /// ### Target:
 /// Game Server

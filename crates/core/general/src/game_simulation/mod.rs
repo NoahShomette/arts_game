@@ -5,7 +5,7 @@ pub struct GameWorldSimulationSchedule;
 
 impl GameWorldSimulationSchedule {
     pub fn new() -> Schedule {
-        let mut schedule = Schedule::new(GameWorldSimulationSchedule);
+        let schedule = Schedule::new(GameWorldSimulationSchedule);
         //schedule.add_systems();
 
         schedule

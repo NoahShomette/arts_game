@@ -11,6 +11,7 @@ mod app;
 mod app_authentication;
 mod client_game_server_network;
 mod game_manager;
+mod game_meta;
 mod game_runner;
 mod http_network;
 mod player_actions;

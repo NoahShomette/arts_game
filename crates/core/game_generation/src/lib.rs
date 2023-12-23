@@ -19,7 +19,7 @@ use sqlite_database::{
 pub fn create_game_world(
     server_world: &mut World,
     game_id: &GameId,
-    settings: &NewGameSettings,
+    _settings: &NewGameSettings,
     id_service: &mut ObjectIdService,
 ) -> World {
     let mut game_world = World::new();

@@ -87,6 +87,7 @@ pub struct CurrentlyConnectedPlayers {
 
 impl CurrentlyConnectedPlayers {
     /// Creates a new Connected Players
+    #[allow(dead_code)]
     pub fn new() -> CurrentlyConnectedPlayers {
         CurrentlyConnectedPlayers { players: vec![] }
     }
@@ -109,6 +110,7 @@ impl CurrentlyConnectedPlayers {
     }
 
     /// Checks if the given player id is present
+    #[allow(dead_code)]
     pub fn contains(&self, player_id: &AccountId) -> bool {
         self.players.contains(player_id)
     }

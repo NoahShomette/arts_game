@@ -1,4 +1,4 @@
-//! Responsible for simulating and handling [`Actions`] sent by players.
+//! Responsible for simulating and handling Actions sent by players.
 
 use core_library::{actions::Action, auth_server::AccountId};
 

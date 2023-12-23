@@ -24,7 +24,7 @@ pub struct PlayerGamesRequest {
 }
 */
 
-/// Ok response returned from [`PlayerGamesRequest`]
+/// Ok response returned from requests for all of a players games
 ///
 /// ### Target:
 /// Client
