@@ -63,11 +63,73 @@ impl Default for AuthenticationServerInfo {
     }
 }
 
-/// The response returned from the server when a user logins.
+/// The response returned from the server when a user signs up.
 #[derive(Serialize, Deserialize)]
 pub struct SignUpResponse {
-    pub user: UserInfo,
+    #[serde(deserialize_with = "into_uuid")]
+    pub id: Uuid,
+    pub aud: String,
+    pub role: String,
+    pub email: String,
+    pub phone: Option<String>,
+    pub confirmation_sent_at: String,
+    pub app_metadata: AppMetadata,
+    pub user_metadata: UserMetadata,
+    pub identities: Vec<SignUpIdentity>,
+    pub created_at: String,
+    pub updated_at: String,
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SignUpIdentity {
+    #[serde(deserialize_with = "into_uuid")]
+    pub identity_id: Uuid,
+    #[serde(deserialize_with = "into_uuid")]
+    pub id: Uuid,
+    #[serde(deserialize_with = "into_uuid")]
+    pub user_id: Uuid,
+    pub identity_data: IdentityData,
+    pub provider: String,
+    pub last_sign_in_at: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub email: String,
+}
+/*
+{"
+id":"c3844b49-2d32-4f10-be06-3bd736b3b9c5",
+"aud":"authenticated",
+"role":"authenticated",
+"email":"test@test.com",
+"phone":"",
+"confirmation_sent_at":"2023-12-23T02:26:23.138765327Z",
+"app_metadata":
+    {
+        "provider":"email",
+        "providers":["email"]
+    },
+"user_metadata":{},
+"identities":[
+    {"identity_id":"9296053f-bb65-43dc-ad41-ef657b5366ec",
+    "id":"c3844b49-2d32-4f10-be06-3bd736b3b9c5",
+    "user_id":"c3844b49-2d32-4f10-be06-3bd736b3b9c5",
+    "identity_data":
+    {
+        "email":"test@test.com",
+        "email_verified":false,
+        "phone_verified":false,
+        "sub":"c3844b49-2d32-4f10-be06-3bd736b3b9c5"
+    },
+    "provider":"email",
+    "last_sign_in_at":"2023-12-23T02:26:23.134853854Z",
+    "created_at":"2023-12-23T02:26:23.134924Z",
+    "updated_at":"2023-12-23T02:26:23.134924Z",
+    "email":"test@test.com"}
+    ],
+    "created_at":"2023-12-23T02:26:23.131977Z",
+    "updated_at":"2023-12-23T02:26:23.420354Z"
+}
+*/
 
 /// The response returned from the server when a user logins.
 #[derive(Serialize, Deserialize, Clone)]
@@ -108,8 +170,10 @@ pub struct AppMetadata {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Identity {
-    pub id: String,
-    pub user_id: String,
+    #[serde(deserialize_with = "into_uuid")]
+    pub id: Uuid,
+    #[serde(deserialize_with = "into_uuid")]
+    pub user_id: Uuid,
     pub identity_data: IdentityData,
     pub provider: String,
     pub last_sign_in_at: String,
@@ -120,7 +184,10 @@ pub struct Identity {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct IdentityData {
     pub email: String,
-    pub sub: String,
+    pub email_verified: bool,
+    pub phone_verified: bool,
+    #[serde(deserialize_with = "into_uuid")]
+    pub sub: Uuid,
 }
 
 fn into_uuid<'de, D>(deserializer: D) -> Result<Uuid, D::Error>

@@ -37,7 +37,7 @@ impl DatabaseSql for CreateGameCurvesTable {
     fn to_sql(&self) -> Option<(String, Vec<String>)> {
         let game_id = self.game_id.id_as_string();
         Some(    (
-            format!("CREATE TABLE \"game_curves_{}\" (object_id TEXT PRIMARY KEY NOT NULL, object_general TEXT, sc_object_position TEXT NOT NULL)", game_id),
+            format!("CREATE TABLE \"game_curves_{}\" (object_id TEXT PRIMARY KEY NOT NULL, sc_object_general TEXT NOT NULL, sc_object_position TEXT NOT NULL)", game_id),
             vec![
             ],
         ))
@@ -88,16 +88,17 @@ impl DatabaseSql for InsertGameCurvesRow {
 
         match &self.object_general {
         Some(object_general) => {
-                Some((format!("insert into \"game_curves_{}\" (object_id, object_general, sc_object_position) values (?1, ?2, ?3)", game_id),
+                Some((format!("insert into \"game_curves_{}\" (object_id, sc_object_general, sc_object_position) values (?1, ?2, ?3)", game_id),
             vec![ 
                 self.object_id.data.clone(),
                 object_general.data.clone(),
                 self.object_position.data.clone(),
             ],))
             }
-            None => Some((format!("insert into \"game_curves_{}\" (object_id, sc_object_position) values (?1, ?2)", game_id),
+            None => Some((format!("insert into \"game_curves_{}\" (object_id, sc_object_general, sc_object_position) values (?1, ?2, ?3)", game_id),
             vec![
                 self.object_id.data.clone(),
+                ObjectGeneral::default().to_database_data().unwrap().data,
                 self.object_position.data.clone(),
             ],)),
         }

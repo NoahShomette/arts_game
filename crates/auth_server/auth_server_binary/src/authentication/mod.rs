@@ -20,13 +20,13 @@ impl Plugin for AuthenticationPlugin {
                 let supabase = world.get_resource::<SupabaseConnection>().unwrap();
                 tide.0.at("/auth/sign_in").post(SignIn {
                     supabase: Arc::new(supabase.clone()),
-                    database: database.clone(),
                 });
                 tide.0.at("/auth/sign_out").post(SignOut {
                     supabase: Arc::new(supabase.clone()),
                 });
                 tide.0.at("/auth/sign_up").post(SignUp {
                     supabase: Arc::new(supabase.clone()),
+                    database: database.clone(),
                 });
                 tide.0.at("/auth/refresh_token").post(RefreshTokenEndpoint {
                     supabase: Arc::new(supabase.clone()),

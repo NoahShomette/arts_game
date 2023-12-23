@@ -9,7 +9,7 @@ use tide::{Error, Request};
 use crate::authentication::supabase::SupabaseConnection;
 use core_library::sqlite_database::Database;
 
-use self::requests::RequestPlayerGames;
+use self::requests::{RequestPlayerGames, SetPlayerUsername};
 
 mod requests;
 
@@ -24,6 +24,10 @@ impl Plugin for UserManagementPlugin {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });
+                tide.0.at("/player/set_username").post(SetPlayerUsername {
+                    supabase: Arc::new(supabase.clone()),
+                    database: database.clone(),
+                });
             });
         });
     }
@@ -32,8 +36,8 @@ impl Plugin for UserManagementPlugin {
 /// Verifies a JWT as being a valid signed JWT from Supabase. Will decode it and return [`Claims`].
 ///
 /// Returns an error if it fails at any part
-pub fn verify_decode_jwt(
-    req: &Request<()>,
+pub fn verify_decode_jwt<T>(
+    req: &Request<T>,
     supabase: &SupabaseConnection,
 ) -> Result<Claims, Error> {
     let Some(access_token) = req.header("authorization") else {
