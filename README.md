@@ -40,9 +40,7 @@ Any other platform is not officially supported.
 
 Read `CONTRIBUTING.md` for more details but in simple:
 
-Before doing anything please view the design book for some direction on the overall goals, design, and style of the game.
-
-- View the design book available at [Arts-Book](https://noahshomette.github.io/arts_game/) for overarching project goals and detailed descriptions and breakdowns of current systems.
+Before doing anything please View the design book available at [Arts-Book](https://noahshomette.github.io/arts_game/) for overarching project goals and detailed descriptions, breakdowns, and visions of current and future systems.
 
 The easiest way to contribute is by fixing or implementing someone elses approved suggestion or bug.
 
@@ -51,13 +49,13 @@ The easiest way to contribute is by fixing or implementing someone elses approve
 - Get your PR merged!
 - Repeat the whole process
 
-If you have a new feature you want to implement the process is very similar. You can either just open an discussion/issue on the feature or reach out in the discord to discuss with the other devs and the community about the new feature. Then just implement and get it merged!
+If you have a new feature you want to implement the process is very similar. You can either just open a discussion/issue on the feature or reach out in the discord to discuss with the other devs and the community about the new feature. Then just implement and get it merged!
 
 ## License
 
 `Arts_Game` is free and open source, licensed under the dual MIT/Apache licenses. Copy the code, learn from how its made, and steal aggresively from it! If you can and want to please contribute back and help make the game better!
 
-The name (currently `Arts_Game` but subject to change) is licensed under CC-BY-NC.
+The name (currently `Arts_Game` but subject to change), future icon/logo, and all art assets contained in any `assets` folder ar,e unless otherwise specificed, licensed under CC-BY-NC.
 
 Any contributions made are accepted under the same license terms.
 
