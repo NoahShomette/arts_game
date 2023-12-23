@@ -35,7 +35,7 @@ impl GameId {
         serde_json::to_string(&self).unwrap()
     }
 
-    /// Returns the interior Uuid as a String. Should only be used on occasions where you only need the Uuid itself and don't cant save it as a GameId object
+    /// Returns the interior Uuid as a String. Should only be used on occasions where you only need the [`Uuid`] itself and not the entire [`GameId`] object
     pub fn id_as_string(&self) -> String {
         self.id.to_string()
     }

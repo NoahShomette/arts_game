@@ -168,7 +168,7 @@ async fn authenticate_user(req: Request<()>, supabase: &SupabaseConnection) -> t
     }
 }
 
-/// Refreshes a users AccessToken.
+/// Refreshes a users access token.
 pub struct RefreshTokenEndpoint {
     pub(crate) supabase: Arc<SupabaseConnection>,
 }

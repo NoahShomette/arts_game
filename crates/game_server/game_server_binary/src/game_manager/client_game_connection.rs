@@ -60,9 +60,11 @@ pub struct RemoveConnectedPlayerFromGameEvent {
 
 struct ConnectingGameAsyncChannelData(Option<(GameId, AccountId)>);
 
-/// Maps a connection_id and player id to a specific game.
+/// Handles players connecting to a specific game.
 ///
-/// Removes that player from any previous game connections if they were in any
+/// - Verifies that a player is currently signed in
+/// - Removes that player from any previous game connections if they were in any
+/// - Sends an event that will map that [`AccountId`] to the [`GameId`] of the game they are in
 fn handle_connecting_to_games(
     mut new_messages: EventReader<NetworkData<ClientConnectToGame>>,
     mut event_writer: EventWriter<AddConnectedPlayerToGameEvent>,

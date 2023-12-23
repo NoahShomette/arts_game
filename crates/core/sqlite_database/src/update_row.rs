@@ -12,7 +12,7 @@ pub struct UpdateRow {
 }
 
 impl UpdateRow {
-    /// Constructs a new UpdateRow struct if the data contained is valid
+    /// Constructs a new [`UpdateRow`] struct if the data contained is valid
     pub fn new(
         table_name: String,
         row_id: &impl DatabaseData,

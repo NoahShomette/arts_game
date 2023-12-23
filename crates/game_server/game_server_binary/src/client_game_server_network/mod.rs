@@ -67,7 +67,9 @@ impl Plugin for GameServerPlugin {
     }
 }
 
-/// Maps connection_ids to their player ids
+/// Maps [`ConnectionId`]s from `Bevy_Eventwork` to their [`AccountId`]s given from the Arts Game Auth Server.
+///
+/// Used to map a specific person to a from a currently connected client via `Bevy_Eventwork`
 #[derive(Resource, Default)]
 pub struct ConnectionIdPlayerIdMapping {
     pub map: HashMap<ConnectionId, Option<AccountId>>,

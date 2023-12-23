@@ -44,7 +44,7 @@ impl DatabaseSql for CreateGameCurvesTable {
     }
 }
 
-/// Inserts a new GameCurves Row
+/// Inserts a new row in a games curves table
 #[derive(Component, Debug, Clone)]
 pub struct InsertGameCurvesRow {
     game_id: GameId,

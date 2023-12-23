@@ -19,17 +19,17 @@ pub trait DatabaseData {
     }
 }
 
-/// DatabaseTable that does not require a [`GameId`]
+/// A table in the database that does not require a [`GameId`]
 pub trait DatabaseTable {
     fn table_name(&self) -> String;
 }
 
-/// DatabaseTable that does require a [`GameId`]
+/// A table in the database that does require a [`GameId`]
 pub trait GameDatabaseTable {
     fn table_name(&self, game_id: &GameId) -> String;
 }
 
-/// A struct used to represent literal DatabaseData in its pure form. The data in here is copied straight into the database
+/// A struct used to represent data in the form that it will be saved into the database in. The data in here is copied straight into the database
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq, Hash, Debug)]
 pub struct PureDatabaseData {
     /// The data formatted into how it should look in the database

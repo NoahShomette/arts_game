@@ -1,7 +1,7 @@
-//! Responsible for establishing and managing active games. Each game gets their own GameInstance
-//! which holds all their state between the GameInstance and the stuff in the actual world.
+//! Responsible for establishing and managing active games. Each game gets their own [`GameInstance`]
+//! which holds all their state between the [`GameInstance`] and the stuff in the actual world.
 //!
-//! Is also responsible though game_manager::save_manager with saving each game into the server files
+//! Is also responsible though `crate::game_manager::save_manager` with saving each game into the server files
 
 use bevy::{
     app::Plugin,

@@ -38,7 +38,7 @@ pub struct AsyncChannelSender<T> {
     pub sender_channel: Sender<T>,
 }
 
-/// Clones the [`AsyncChannelReceiver`] of the given type if it exists in the world. Should be used on the server_world
+/// Clones the [`AsyncChannelReceiver`] of the given type if it exists in the world
 pub fn clone_async_sender<T: 'static + Send + Sync + Clone>(
     server_world: &World,
 ) -> Option<AsyncChannelSender<T>> {

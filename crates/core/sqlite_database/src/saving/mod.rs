@@ -52,7 +52,7 @@ impl SaveSchedule {
 #[derive(Component)]
 pub struct ExistsInDatabase;
 
-/// Fn that sends an UpdateRow message for any component that has changed and has an [`ExistsInDatabase`] component. Note that when
+/// Fn that sends an [`UpdateRow`] message for any component that has changed and has an [`ExistsInDatabase`] component. Note that when
 #[allow(clippy::type_complexity)]
 fn save_component<
     Table: Resource + GameDatabaseTable,

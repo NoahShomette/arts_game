@@ -4,6 +4,7 @@ use clap::Parser;
 use core_library::http_server::TideServerResource;
 use tide::http::url;
 
+/// Arguements passed into the server via command line
 #[allow(clippy::unwrap_used)]
 #[derive(Parser)]
 struct ServerArgs {
