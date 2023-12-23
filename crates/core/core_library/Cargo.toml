@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [features]
-http_server_feature = ["tide", "http_server", "async-trait", "jsonwebtoken"]
+http_server_feature = ["tide", "http_server", "async-trait"]
 game_generator = ["game_generation"]
 database = ["sqlite_database"]
 
@@ -15,7 +15,6 @@ database = ["sqlite_database"]
 http_server = { path = "../http_server", optional = true }
 tide = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
-jsonwebtoken = { workspace = true, optional = true }
 
 # Game Generation
 game_generation = { path = "../game_generation", optional = true }

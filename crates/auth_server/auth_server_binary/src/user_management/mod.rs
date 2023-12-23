@@ -19,7 +19,9 @@ impl Plugin for UserManagementPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.world.resource_scope(|world, database: Mut<Database>| {
             world.resource_scope(|world, mut tide: Mut<TideServerResource>| {
-                let supabase = world.get_resource::<SupabaseConnection>().expect("SupabaseConnection must be in world when launching TideServer");
+                let supabase = world
+                    .get_resource::<SupabaseConnection>()
+                    .expect("SupabaseConnection must be in world when launching TideServer");
                 tide.0.at("/player/player_games").get(RequestPlayerGames {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),

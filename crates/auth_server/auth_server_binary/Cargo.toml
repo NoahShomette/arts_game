@@ -24,7 +24,7 @@ ehttp = { workspace = true }
 # http server
 tide = { workspace = true }
 async-trait = { version = "0.1.74" }
-jsonwebtoken = { version = "9.1.0" }
+jsonwebtoken = { workspace = true }
 rusqlite = { version = "0.30.0", features = ["bundled"] }
 
 thiserror = { workspace = true }
