@@ -12,7 +12,15 @@ core_library = { path = "../../core/core_library" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
-bevy = { workspace = true, default-features = true }
+bevy = { workspace = true, default-features = true, features = [
+    "bevy_ui",
+    "multi-threaded",
+    "bevy_text",
+    "bevy_winit",
+    "bevy_render",
+    "bevy_core_pipeline",
+    "default_font"
+] }
 bevy_state_curves = { workspace = true }
 
 # Websocket Networking

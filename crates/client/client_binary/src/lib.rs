@@ -15,12 +15,13 @@ use core_library::game_meta::NewGameSettings;
 use core_library::network::{GameAddrInfo, HttpRequestMeta};
 use core_library::{async_runners, TaskPoolRes};
 use network::NetworkPlugin;
+use ui::ClientUiPlugin;
 
 pub struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(NetworkPlugin);
+        app.add_plugins((NetworkPlugin, ClientUiPlugin));
 
         app.insert_resource(GameAddrInfo {
             server_addr: "127.0.0.1".to_string(),
