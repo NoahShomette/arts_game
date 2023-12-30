@@ -1,11 +1,13 @@
 use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
 use core_library::auth_server::AccountId;
+
 use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
-use core_library::authentication::SignUpResponse;
+use core_library::authentication::{SignInResponse, SignUpResponse};
 use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
 use core_library::sqlite_database::Database;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tide::utils::async_trait;
 use tide::{Endpoint, Error, Request};
@@ -193,4 +195,56 @@ async fn refresh_user(mut req: Request<()>, supabase: &SupabaseConnection) -> ti
         Some(body) => Ok(tide::Response::builder(200).body(body).build()),
         None => Err(Error::from_str(500, "Failed to refresh user")),
     }
+}
+
+/// Refreshes a users access token.
+pub struct IsUserEmailConfirmed {
+    pub(crate) supabase: Arc<SupabaseConnection>,
+}
+
+#[async_trait]
+impl Endpoint<()> for IsUserEmailConfirmed {
+    async fn call(&self, req: Request<()>) -> tide::Result {
+        check_if_user_email_confirmed(req, &self.supabase).await
+    }
+}
+
+async fn check_if_user_email_confirmed(
+    mut req: Request<()>,
+    supabase: &SupabaseConnection,
+) -> tide::Result {
+    println!("Received email confirmation request");
+    let request: HttpRequestMeta<
+        core_library::authentication::client_authentication::IsUserEmailConfirmed,
+    > = req.body_json().await?;
+
+    let result = supabase.sign_in_password(request.request.info).await?;
+
+    if !result.status == 200 {
+        return Err(Error::from_str(500, "Failed to verify user"));
+    }
+
+    let result_text = match result.text() {
+        Some(body) => body,
+        None => return Err(Error::from_str(500, "Failed to verify user")),
+    };
+
+    // Check if the user is verified or not. If we cant deserialize into the error struct than we assume its a valid login for now
+    let is_verified = match serde_json::from_str::<SignInResponse>(result_text) {
+        Ok(response) => {
+            let _ = supabase.logout(response.access_token).await?;
+            true
+        }
+        Err(_) => false,
+    };
+
+    Ok(tide::Response::builder(200)
+        .body(is_verified.to_string())
+        .build())
+}
+
+#[derive(Serialize, Deserialize)]
+struct BasicUserDetails {
+    error: String,
+    error_description: String,
 }

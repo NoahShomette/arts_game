@@ -43,6 +43,13 @@ impl PasswordLoginInfo {
     }
 }
 
+/// A request sent by a user to check if they are confirmed
+#[derive(Serialize, Deserialize, Clone)]
+pub struct IsUserEmailConfirmed {
+    pub info: PasswordLoginInfo,
+}
+
+/// A request sent by a user to refresh their access token
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RefreshTokenRequest {
     pub refresh_token: RefreshToken,

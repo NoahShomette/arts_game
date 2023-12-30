@@ -9,7 +9,7 @@ use tide::{Error, Request};
 use crate::authentication::supabase::SupabaseConnection;
 use core_library::sqlite_database::Database;
 
-use self::requests::{RequestPlayerGames, SetPlayerUsername};
+use self::requests::{GetPlayerUsername, RequestPlayerGames, SetPlayerUsername};
 
 mod requests;
 
@@ -27,6 +27,10 @@ impl Plugin for UserManagementPlugin {
                     database: database.clone(),
                 });
                 tide.0.at("/player/set_username").post(SetPlayerUsername {
+                    supabase: Arc::new(supabase.clone()),
+                    database: database.clone(),
+                });
+                tide.0.at("/player/get_username").get(GetPlayerUsername {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });

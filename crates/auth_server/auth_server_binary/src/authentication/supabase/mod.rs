@@ -12,6 +12,7 @@ use core_library::authentication::client_authentication::{
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use self::errors::{AuthErrors, AuthOk};
 
@@ -35,7 +36,8 @@ impl From<PasswordLoginInfo> for InternalPasswordLoginInfo {
 pub struct SupabaseConnection {
     pub url: String,
     pub api_key: String,
-    pub jwt: String,
+    pub jwt_secret: String,
+    pub service_role: String,
     pub sender_channel: Sender<Result<AuthOk, AuthErrors>>,
     pub reciever_channel: Arc<Mutex<Receiver<Result<AuthOk, AuthErrors>>>>,
 }
@@ -47,7 +49,7 @@ impl SupabaseConnection {
     ///
     /// This does not validate if the token sent gives authorization to access any requested data
     pub fn jwt_valid(&self, jwt: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
-        let secret = self.jwt.clone();
+        let secret = self.jwt_secret.clone();
 
         let decoding_key = DecodingKey::from_secret(secret.as_ref());
         let mut validation = Validation::new(Algorithm::HS256);
@@ -78,7 +80,8 @@ impl SupabaseConnection {
 
         let jwt_secret =
             dotenv::var("JWT_SECRET").expect("Must have JWT_SECRET when starting server");
-
+        let service_role =
+            dotenv::var("SERVICE_ROLE").expect("Must have SERVICE_ROLE when starting server");
         let jwt: String = jwt_secret;
 
         let (sender, reciever) = mpsc::channel::<Result<AuthOk, AuthErrors>>();
@@ -86,9 +89,10 @@ impl SupabaseConnection {
         SupabaseConnection {
             url: url.to_string(),
             api_key: api_key.to_string(),
-            jwt,
+            jwt_secret: jwt,
             sender_channel: sender,
             reciever_channel: Arc::new(Mutex::new(reciever)),
+            service_role,
         }
     }
 
@@ -187,6 +191,28 @@ impl SupabaseConnection {
         request.headers.insert(
             "authorization".to_string(),
             format!("Bearer {}", access_token),
+        );
+
+        match ehttp::fetch_async(request).await {
+            Ok(response) => Ok(response),
+            Err(err) => Err(AuthErrors::Basic(err.to_string())),
+        }
+    }
+
+    pub async fn check_if_user_email_verified(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
+        let request_url: String = format!("{}/auth/admin/{}", self.url, user_id);
+
+        let mut request = ehttp::Request::get(request_url);
+
+        request
+            .headers
+            .insert("apikey".to_string(), self.api_key.clone());
+        request.headers.insert(
+            "authorization".to_string(),
+            format!("Bearer {}", self.service_role.clone()),
         );
 
         match ehttp::fetch_async(request).await {

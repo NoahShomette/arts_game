@@ -1,11 +1,12 @@
-use bevy::ecs::event::EventReader;
+use bevy::ecs::event::{EventReader, EventWriter};
 use bevy::ecs::schedule::NextState;
 use bevy::ecs::system::{Commands, ResMut, Resource};
 use bevy::log::info;
 use bevy::prelude::Res;
 use ehttp::Response;
+use serde::{Deserialize, Serialize};
 
-use crate::authentication::SignInResponse;
+use crate::authentication::{SignInResponse, SignUpDetails, SignUpResponse};
 use crate::network::HttpRequestMeta;
 use crate::{async_runners, TaskPoolRes};
 
@@ -13,7 +14,9 @@ use super::client_authentication::{
     AuthClient, AuthenticationResponses, ClientAuthenticationInfo, SignInEvent, SignOutEvent,
     SignUpEvent,
 };
-use super::{AppAuthenticationState, AuthenticationServerInfo};
+use super::{
+    AppAuthenticationState, AuthenticationServerInfo, SignInResultEvent, SignUpResultEvent,
+};
 
 #[derive(Resource)]
 pub struct TryingToSignUp;
@@ -187,6 +190,8 @@ pub fn receive_auth_results(
     supa: Res<AuthClient>,
     mut commands: Commands,
     app_state: ResMut<NextState<AppAuthenticationState>>,
+    mut si_result_event: EventWriter<SignInResultEvent>,
+    mut su_result_event: EventWriter<SignUpResultEvent>,
 ) {
     let Ok(channel) = supa.reciever_channel.lock() else {
         return;
@@ -201,11 +206,32 @@ pub fn receive_auth_results(
     if let Ok(result) = result {
         match result {
             Ok(result) => match (result.1.ok, result.1.status) {
-                (true, 200) => handle_response_data(result, commands, app_state),
-                (_, _) => info!(
-                    "Error Code - {} : Status Text - '{}'",
-                    result.1.status, result.1.status_text
+                (true, 200) => handle_response_data(
+                    result,
+                    commands,
+                    app_state,
+                    &mut si_result_event,
+                    &mut su_result_event,
                 ),
+                (_, _) => {
+                    match result.0 {
+                        AuthenticationResponses::SignIn => {
+                            si_result_event.send(SignInResultEvent {
+                                result: Err(String::from("Error signing in")),
+                            })
+                        }
+                        AuthenticationResponses::SignOut => todo!(),
+                        AuthenticationResponses::SignUp(_) => {
+                            su_result_event.send(SignUpResultEvent {
+                                result: Err(String::from("Error signing up")),
+                            })
+                        }
+                    }
+                    info!(
+                        "Error Code - {} : Status Text - '{}'",
+                        result.1.status, result.1.status_text
+                    );
+                }
             },
             Err(err) => info!("Error {}", err),
         };
@@ -216,10 +242,38 @@ pub fn handle_response_data(
     response: (AuthenticationResponses, Response),
     mut commands: Commands,
     mut app_state: ResMut<NextState<AppAuthenticationState>>,
+    result_event: &mut EventWriter<SignInResultEvent>,
+    su_result_event: &mut EventWriter<SignUpResultEvent>,
 ) {
     match response.0 {
         AuthenticationResponses::SignIn => {
-            let v: SignInResponse = serde_json::from_str(response.1.text().unwrap()).unwrap();
+            let text = match response.1.text() {
+                Some(text) => text,
+                None => {
+                    result_event.send(SignInResultEvent {
+                        result: Err(String::from("Error logging in")),
+                    });
+                    return;
+                }
+            };
+
+            let v: SignInResponse = match serde_json::from_str(text) {
+                Ok(v) => v,
+                Err(_) => match serde_json::from_str::<ErrorStruct>(text) {
+                    Ok(err) => {
+                        result_event.send(SignInResultEvent {
+                            result: Err(err.error_description),
+                        });
+                        return;
+                    }
+                    Err(_) => {
+                        result_event.send(SignInResultEvent {
+                            result: Err(String::from("Error logging in")),
+                        });
+                        return;
+                    }
+                },
+            };
             commands.insert_resource(ClientAuthenticationInfo {
                 sign_in_info: v.clone(),
             });
@@ -232,7 +286,41 @@ pub fn handle_response_data(
             println!("Logged Out");
         }
         AuthenticationResponses::SignUp(_) => {
+            let text = match response.1.text() {
+                Some(text) => text,
+                None => {
+                    su_result_event.send(SignUpResultEvent {
+                        result: Err(String::from("Error logging in")),
+                    });
+                    return;
+                }
+            };
+
+            let v: SignUpResponse = match serde_json::from_str(text) {
+                Ok(v) => v,
+                Err(_) => match serde_json::from_str::<ErrorStruct>(text) {
+                    Ok(err) => {
+                        su_result_event.send(SignUpResultEvent {
+                            result: Err(err.error_description),
+                        });
+                        return;
+                    }
+                    Err(_) => {
+                        su_result_event.send(SignUpResultEvent {
+                            result: Err(String::from("Error logging in")),
+                        });
+                        return;
+                    }
+                },
+            };
+            commands.insert_resource(SignUpDetails { details: v });
             println!("Signed Up");
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct ErrorStruct {
+    error: String,
+    error_description: String,
 }

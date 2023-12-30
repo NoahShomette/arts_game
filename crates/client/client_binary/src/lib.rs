@@ -1,27 +1,37 @@
 mod network;
 pub mod ui;
 
-use bevy::app::Update;
-use bevy::ecs::event::EventWriter;
-use bevy::ecs::schedule::common_conditions::in_state;
-use bevy::ecs::schedule::IntoSystemConfigs;
+use app::AppPlugin;
+use asset_loading::AssetLoadingPlugin;
+use authentication::AuthenticationPlugin;
 use bevy::ecs::system::{Commands, Res, Resource};
 use bevy::{app::Plugin, tasks::TaskPoolBuilder};
-use core_library::authentication::client_authentication::{
-    ClientAuthenticationInfo, PasswordLoginInfo, SignInEvent,
-};
-use core_library::authentication::AppAuthenticationState;
+use camera::CameraPlugin;
+use core_library::authentication::client_authentication::ClientAuthenticationInfo;
 use core_library::game_meta::NewGameSettings;
 use core_library::network::{GameAddrInfo, HttpRequestMeta};
 use core_library::{async_runners, TaskPoolRes};
 use network::NetworkPlugin;
 use ui::ClientUiPlugin;
 
+pub mod app;
+pub mod asset_loading;
+mod authentication;
+pub mod camera;
+pub mod player;
+
 pub struct ClientPlugin;
 
 impl Plugin for ClientPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins((NetworkPlugin, ClientUiPlugin));
+        app.add_plugins((
+            AppPlugin,
+            AssetLoadingPlugin,
+            NetworkPlugin,
+            ClientUiPlugin,
+            CameraPlugin,
+            AuthenticationPlugin,
+        ));
 
         app.insert_resource(GameAddrInfo {
             server_addr: "127.0.0.1".to_string(),
@@ -30,25 +40,13 @@ impl Plugin for ClientPlugin {
         });
 
         app.insert_resource(TaskPoolRes(TaskPoolBuilder::new().num_threads(2).build()));
-        app.add_systems(
-            Update,
-            (
-                sign_in.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
-                new_game.run_if(in_state(AppAuthenticationState::Authenticated)),
-            ),
-        );
     }
-}
-
-fn sign_in(mut su: EventWriter<SignInEvent>) {
-    su.send(SignInEvent {
-        login_info: PasswordLoginInfo::new("noahshomette@gmail.com", "123456", true),
-    });
 }
 
 #[derive(Resource)]
 struct RequestedNewGame;
 
+#[allow(dead_code)]
 fn new_game(
     task_pool_res: Res<TaskPoolRes>,
     game_server_info: Res<GameAddrInfo>,

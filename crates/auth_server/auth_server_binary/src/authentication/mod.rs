@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use self::{
-    requests::{AuthenticateUser, RefreshTokenEndpoint, SignIn, SignOut, SignUp},
+    requests::{
+        AuthenticateUser, IsUserEmailConfirmed, RefreshTokenEndpoint, SignIn, SignOut, SignUp,
+    },
     supabase::SupabaseConnection,
 };
 use bevy::{ecs::world::Mut, prelude::Plugin};
@@ -36,6 +38,11 @@ impl Plugin for AuthenticationPlugin {
                 tide.0.at("/auth/authenticate_user").get(AuthenticateUser {
                     supabase: Arc::new(supabase.clone()),
                 });
+                tide.0
+                    .at("/auth/is_user_email_confirmed")
+                    .post(IsUserEmailConfirmed {
+                        supabase: Arc::new(supabase.clone()),
+                    });
             });
         });
     }

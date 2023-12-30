@@ -19,9 +19,12 @@ bevy = { workspace = true, default-features = true, features = [
     "bevy_winit",
     "bevy_render",
     "bevy_core_pipeline",
-    "default_font"
+    "default_font",
+    "bevy_asset",
 ] }
 bevy_state_curves = { workspace = true }
+bevy_tweening = "0.9.0"
+bevy_asset_loader = { version = "0.18.0" }
 
 # Websocket Networking
 bevy_eventwork = { workspace = true }
@@ -29,3 +32,9 @@ bevy_eventwork_mod_websockets = { workspace = true }
 
 # HTTP Networking
 ehttp = { workspace = true }
+
+#ui crates
+bevy_simple_text_input = { git = "https://github.com/NoahShomette/bevy_simple_text_input.git", branch = "main" }
+
+# Testing
+bevy-inspector-egui = { version = "0.21.0" }
