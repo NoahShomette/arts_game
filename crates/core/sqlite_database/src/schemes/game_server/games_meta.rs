@@ -33,9 +33,8 @@ impl DatabaseSql for InsertGamesMetaRow {
                 let Ok(player) = serde_json::to_string(&player) else {
                     return None;
                 };
-        
-                Some((
-                "insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, owning_player, game_name) values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)".to_string(),
+
+                Some(("insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, owning_player, game_name) values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)".to_string(),
                 vec![
                     game_id,
                     game_players,

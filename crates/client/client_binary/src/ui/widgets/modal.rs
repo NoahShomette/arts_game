@@ -108,11 +108,9 @@ where
         .id();
 
     if modal_style.can_close {
-        commands.entity(root).insert((
-            ModalCloseButtonMarker(root),
-            Interaction::None,
-            Button::default(),
-        ));
+        commands
+            .entity(root)
+            .insert((ModalCloseButtonMarker(root), Interaction::None, Button));
     }
 
     //root node for the inside panel
@@ -126,7 +124,7 @@ where
                 align_items: AlignItems::Center,
                 position_type: PositionType::Relative,
                 flex_direction: FlexDirection::Column,
-                border: border,
+                border,
                 ..default()
             },
             background_color: colors.background().into(),

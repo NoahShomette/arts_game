@@ -2,7 +2,10 @@
 
 use bevy::{
     app::Plugin,
-    ecs::{schedule::{OnEnter, IntoSystemConfigs}, world::World},
+    ecs::{
+        schedule::{IntoSystemConfigs, OnEnter},
+        world::World,
+    },
 };
 use core_library::{authentication::AppAuthenticationState, http_server::TideServerResource};
 

@@ -1,4 +1,4 @@
-//! TGames menu does three things
+//! The games menu does three things
 //! - Show a player all games they are in
 //! - Show a player all public open games they can join
 //! - Create a new game
