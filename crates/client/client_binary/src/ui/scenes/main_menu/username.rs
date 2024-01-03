@@ -205,7 +205,7 @@ fn setup_set_username(
     let modal = modal_panel(
         UsernameModal,
         ModalStyle {
-            with_close_button: can_close,
+            can_close,
             close_button_bundle: None::<()>,
             modal_size: Some((Val::Percent(75.0), Val::Percent(75.0))),
             outline: true,

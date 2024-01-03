@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{auth_server::AccountId, game_meta::GameId};
+use crate::{
+    auth_server::AccountId,
+    game_meta::{GameId, GamePlayers},
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct JoinGame {
@@ -12,4 +15,33 @@ pub struct JoinGame {
 pub struct QuitGame {
     pub game_id: GameId,
     pub player_id: AccountId,
+}
+
+/// A request for all the game info for the given [`GameId`]s
+#[derive(Serialize, Deserialize, Clone)]
+pub struct RequestGamesInfo {
+    pub games: Vec<GameId>,
+}
+
+/// A response for [`RequestGamesInfo`]
+///
+/// The vec contains in order
+/// ([`GameId`],
+/// [`GamePlayers`],
+/// max players,
+/// the current game state,
+/// bool representing if the game has space available,
+/// the [`AcountId`] of the player that owns the game,
+/// the name of the game)
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GamesInfoResponse {
+    pub games: Vec<(
+        GameId,
+        GamePlayers,
+        i32,
+        i32,
+        i32,
+        Option<AccountId>,
+        String,
+    )>,
 }

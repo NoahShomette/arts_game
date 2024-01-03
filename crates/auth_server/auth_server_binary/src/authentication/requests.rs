@@ -39,24 +39,25 @@ async fn sign_up(
     let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
     let is_player = request.request.is_player();
     let result = supabase.sign_up_password(request.request).await?;
-    if let Ok(mut connection) = database.connection.try_lock() {
-        if let Some(result_text) = result.text() {
-            let v: SignUpResponse = serde_json::from_str(result_text)?;
-            let _user_id = v.id;
-            let account_id = serde_json::to_string(&AccountId { id: _user_id })?;
-            let tx = connection.transaction()?;
 
-            match is_player {
-                true => {
-                    {
-                        // Check if there is already a player account saved
-                        match tx.prepare(&format!(
-                            "SELECT player_id FROM player_data where player_id = {}",
-                            account_id
-                        )) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                let _ = tx.execute(
+    let mut connection = database.connection.lock().await;
+    if let Some(result_text) = result.text() {
+        let v: SignUpResponse = serde_json::from_str(result_text)?;
+        let _user_id = v.id;
+        let account_id = serde_json::to_string(&AccountId { id: _user_id })?;
+        let tx = connection.transaction()?;
+
+        match is_player {
+            true => {
+                {
+                    // Check if there is already a player account saved
+                    match tx.prepare(&format!(
+                        "SELECT player_id FROM player_data where player_id = {}",
+                        account_id
+                    )) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            let _ = tx.execute(
                                 "insert into player_data (player_id, player_games, username) values (?1, ?2, ?3)",
                                 [
                                     &account_id,
@@ -67,30 +68,33 @@ async fn sign_up(
                                     &Uuid::new_v4().to_string(),
                                 ],
                             );
-                            }
-                        }
-                    }
-                }
-                false => {
-                    {
-                        // Check if there is already a server account saved
-                        match tx.prepare(&format!(
-                            "SELECT server_id FROM server_data where server_id = {}",
-                            account_id
-                        )) {
-                            Ok(_) => {}
-                            Err(_) => {
-                                let _ = tx.execute(
-                                    "insert into server_data (server_id, server_type) values (?1, ?2)",
-                                    [&account_id, &serde_json::to_string(&0).expect("Serializing 0 should always be valid")],
-                                );
-                            }
                         }
                     }
                 }
             }
-            tx.commit()?;
+            false => {
+                {
+                    // Check if there is already a server account saved
+                    match tx.prepare(&format!(
+                        "SELECT server_id FROM server_data where server_id = {}",
+                        account_id
+                    )) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            let _ = tx.execute(
+                                "insert into server_data (server_id, server_type) values (?1, ?2)",
+                                [
+                                    &account_id,
+                                    &serde_json::to_string(&0)
+                                        .expect("Serializing 0 should always be valid"),
+                                ],
+                            );
+                        }
+                    }
+                }
+            }
         }
+        tx.commit()?;
     }
     match result.text() {
         Some(body) => Ok(tide::Response::builder(200).body(body).build()),

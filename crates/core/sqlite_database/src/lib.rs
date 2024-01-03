@@ -1,3 +1,4 @@
+use async_mutex::Mutex;
 use database_traits::DatabaseData;
 use general::clone_async_sender;
 use rusqlite::{params_from_iter, Error, Transaction};
@@ -8,7 +9,7 @@ use schemes::{
 };
 use update_row::UpdateRow;
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bevy::{
     app::Plugin,

@@ -13,38 +13,50 @@ pub struct InsertGamesMetaRow {
     pub max_players: u8,
     pub owning_player: Option<AccountId>,
     pub object_id_service: ObjectIdService,
+    pub game_name: String,
 }
 
 impl DatabaseSql for InsertGamesMetaRow {
     fn to_sql(&self) -> Option<(String, Vec<String>)> {
         let game_id = self.game_id.to_json();
+
+        let Ok(object_id_service) = serde_json::to_string(&self.object_id_service) else {
+            return None;
+        };
+
+        let Ok(game_players) = serde_json::to_string(&GamePlayers::default()) else {
+            return None;
+        };
+
         match &self.owning_player {
-            Some(player) => Some((
-                "insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, owning_player) values (?1, ?2, ?3, ?4, ?5, ?6, ?7)".to_string(),
+            Some(player) => {
+                let Ok(player) = serde_json::to_string(&player) else {
+                    return None;
+                };
+        
+                Some((
+                "insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, owning_player, game_name) values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)".to_string(),
                 vec![
                     game_id,
-                    serde_json::to_string(&GamePlayers::default())
-                    .unwrap(),
+                    game_players,
                     self.max_players.to_string(),
                     0.to_string(),
                     1.to_string(),
-                    serde_json::to_string(&self.object_id_service)
-                    .unwrap(),
-                    serde_json::to_string(player)
-                    .unwrap(),
+                    object_id_service,
+                    player,
+                    self.game_name.clone(),
                 ],
-            )),
+            ))},
             None => Some((
-                "insert into games_meta (game_id, game_players, max_players, game_state, has_space,  object_id_service) values (?1, ?2, ?3, ?4, ?5, ?6)".to_string(),
+                "insert into games_meta (game_id, game_players, max_players, game_state, has_space, object_id_service, game_name) values (?1, ?2, ?3, ?4, ?5, ?6, ?7)".to_string(),
                 vec![
                     game_id,
-                    serde_json::to_string(&GamePlayers::default())
-                    .unwrap(),
+                    game_players,
                     self.max_players.to_string(),
                     0.to_string(),
                     1.to_string(),
-                    serde_json::to_string(&self.object_id_service)
-                    .unwrap()
+                    object_id_service,
+                    self.game_name.clone(),
                 ],
             )),
         }

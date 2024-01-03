@@ -54,7 +54,7 @@ fn execute_sql<T: Send + Sync + 'static + Component + DatabaseSql + Debug>(
     if pending_data.is_empty() {
         return;
     }
-    let Ok(mut connection) = database.connection.try_lock() else {
+    let Some(mut connection) = database.connection.try_lock() else {
         return;
     };
 

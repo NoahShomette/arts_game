@@ -30,10 +30,12 @@ impl Plugin for UserManagementPlugin {
                     supabase: Arc::new(supabase.clone()),
                     database: database.clone(),
                 });
-                tide.0.at("/player/get_username").get(GetPlayerUsername {
-                    supabase: Arc::new(supabase.clone()),
-                    database: database.clone(),
-                });
+                tide.0
+                    .at("/player/get_username/:user_id")
+                    .get(GetPlayerUsername {
+                        supabase: Arc::new(supabase.clone()),
+                        database: database.clone(),
+                    });
             });
         });
     }

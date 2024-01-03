@@ -49,17 +49,23 @@ fn modal_button_interaction(
     }
 }
 
+/// A marker marking a modal close button. Contains a reference to the root modal entity
+#[derive(Component)]
+struct ModalCloseButtonMarker(Entity);
+
+/// A component that marks the entity where all user content should be contained in
+#[derive(Component)]
+pub struct ModalContentParent;
+
 #[allow(dead_code)]
 pub struct ModalStyle<B: Bundle> {
-    pub with_close_button: bool,
+    /// True spawns a close button in the modal and will allow clicking outside the modal to close the modal
+    pub can_close: bool,
+    /// A bundle that allows you to add extra components to the close button
     pub close_button_bundle: Option<B>,
     pub modal_size: Option<(Val, Val)>,
     pub outline: bool,
 }
-
-/// A marker marking a modal close button. Contains a reference to the root modal entity
-#[derive(Component)]
-struct ModalCloseButtonMarker(Entity);
 
 /// Construct and spawn a new modal
 #[allow(dead_code)]
@@ -77,9 +83,14 @@ where
         Some(size) => size,
     };
 
+    let border = match modal_style.outline {
+        true => UiRect::all(Val::Px(25.0)),
+        false => UiRect::all(Val::Px(0.0)),
+    };
+
     // Root level node, spanning the whole screen and applying a 50% opacity
     let root = commands
-        .spawn(NodeBundle {
+        .spawn((NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -92,54 +103,39 @@ where
             focus_policy: FocusPolicy::Block,
             z_index: bevy::ui::ZIndex::Global(UI_MODAL_LAYER),
             ..default()
-        })
+        },))
         .insert(menu_type)
         .id();
 
-    let mut border_or_root_entity = root;
-
-    // Node behaving as a border for the actual modal
-    if modal_style.outline {
-        let border_entity = commands
-            .spawn(NodeBundle {
-                style: Style {
-                    width: modal_size.0,
-                    height: modal_size.1,
-                    padding: UiRect::all(Val::Px(25.0)),
-                    justify_content: JustifyContent::Start,
-                    align_items: AlignItems::Center,
-                    position_type: PositionType::Relative,
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
-                background_color: colors.accent().into(),
-                ..default()
-            })
-            .id();
-
-        commands.entity(root).push_children(&[border_entity]);
-
-        border_or_root_entity = border_entity;
+    if modal_style.can_close {
+        commands.entity(root).insert((
+            ModalCloseButtonMarker(root),
+            Interaction::None,
+            Button::default(),
+        ));
     }
 
-    //root node for the inside panel, padding to give it a border
-    let inside_background_panel = commands
+    //root node for the inside panel
+    let modal_body = commands
         .spawn(NodeBundle {
             style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
+                width: modal_size.0,
+                height: modal_size.1,
                 padding: UiRect::all(Val::Px(10.0)),
                 justify_content: JustifyContent::Start,
                 align_items: AlignItems::Center,
                 position_type: PositionType::Relative,
                 flex_direction: FlexDirection::Column,
+                border: border,
                 ..default()
             },
             background_color: colors.background().into(),
+            border_color: colors.accent().into(),
             ..default()
         })
         .id();
-    if modal_style.with_close_button {
+
+    if modal_style.can_close {
         // Top option close button
         let close_button = commands
             .spawn(NodeBundle {
@@ -180,7 +176,7 @@ where
                     .insert(BasicButton)
                     .with_children(|parent| {
                         parent.spawn(TextBundle::from_section(
-                            "CLOSE",
+                            "X",
                             TextStyle {
                                 font_size: 40.0,
                                 color: colors.dark_text(),
@@ -194,9 +190,7 @@ where
             })
             .id();
 
-        commands
-            .entity(inside_background_panel)
-            .push_children(&[close_button]);
+        commands.entity(modal_body).push_children(&[close_button]);
     }
 
     // content entity is the entity to which all content should be children of. We assign it to a basic entity and then reassign it later
@@ -217,11 +211,7 @@ where
         })
         .id();
 
-    commands
-        .entity(border_or_root_entity)
-        .push_children(&[inside_background_panel]);
-    commands
-        .entity(inside_background_panel)
-        .push_children(&[content_entity]);
+    commands.entity(root).push_children(&[modal_body]);
+    commands.entity(modal_body).push_children(&[content_entity]);
     content_entity
 }

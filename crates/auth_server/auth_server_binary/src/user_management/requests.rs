@@ -54,46 +54,53 @@ async fn request_player_games(
 ) -> tide::Result {
     let claims = verify_decode_jwt(&req, supabase)?;
     let mut games_mapped: Vec<(GameId, Url, i32)> = vec![];
-    if let Ok(connection) = database.connection.lock() {
-        {
-            let mut stmt = connection.prepare(&format!(
-                "SELECT player_games FROM player_data where player_id = {}",
-                claims.sub
-            ))?;
 
-            let games = stmt.query_map((), |row| {
-                Ok(QueryResultRPG {
-                    player_games: row.get(1)?,
-                })
-            })?;
+    let id = match Uuid::parse_str(&claims.sub) {
+        Ok(uuid) => uuid,
+        Err(_) => return Err(Error::from_str(500, "Failed to get user id")),
+    };
 
-            for game in games {
-                let game: PlayerGames = serde_json::from_str(&game?.player_games)?;
+    let account_id = serde_json::to_string(&AccountId { id })?;
 
-                for game in game.current_games.iter() {
-                    let mut stmt = connection.prepare(&format!(
-                        "SELECT game_id, game_ip, server_type FROM game_data where game_id = {}",
-                        game.id
-                    ))?;
+    let connection = database.connection.lock().await;
+    {
+        let mut stmt = connection.prepare(&format!(
+            "SELECT player_games FROM player_data where player_id = \'{}\'",
+            account_id
+        ))?;
 
-                    let games_data = stmt.query_map((), |row| {
-                        Ok(QueryResultGames {
-                            game_id: row.get(1)?,
-                            game_ip: row.get(2)?,
-                            server_type: row.get(6)?,
-                        })
-                    })?;
+        let games = stmt.query_map((), |row| {
+            Ok(QueryResultRPG {
+                player_games: row.get(1)?,
+            })
+        })?;
 
-                    for game in games_data {
-                        let game_info = game?;
-                        games_mapped.push((
-                            GameId {
-                                id: Uuid::parse_str(&game_info.game_id)?,
-                            },
-                            Url::parse(&game_info.game_ip)?,
-                            game_info.server_type,
-                        ))
-                    }
+        for game in games {
+            let game: PlayerGames = serde_json::from_str(&game?.player_games)?;
+
+            for game in game.current_games.iter() {
+                let mut stmt = connection.prepare(&format!(
+                    "SELECT game_id, game_ip, server_type FROM game_info where game_id = \'{}\'",
+                    game.id
+                ))?;
+
+                let games_data = stmt.query_map((), |row| {
+                    Ok(QueryResultGames {
+                        game_id: row.get(1)?,
+                        game_ip: row.get(2)?,
+                        server_type: row.get(6)?,
+                    })
+                })?;
+
+                for game in games_data {
+                    let game_info = game?;
+                    games_mapped.push((
+                        GameId {
+                            id: Uuid::parse_str(&game_info.game_id)?,
+                        },
+                        Url::parse(&game_info.game_ip)?,
+                        game_info.server_type,
+                    ))
                 }
             }
         }
@@ -154,34 +161,33 @@ async fn set_player_username(
 
     let account_id = serde_json::to_string(&AccountId { id })?;
 
-    if let Ok(connection) = database.connection.lock() {
-        {
+    let connection = database.connection.lock().await;
+    {
+        let mut stmt = connection.prepare(&format!(
+            "SELECT username FROM player_data where username = \'{}\'",
+            request.request.username
+        ))?;
+
+        let mut users = stmt.query_map((), |row| {
+            Ok(QueryResultPlayerUsernames {
+                _username: row.get("username")?,
+            })
+        })?;
+
+        if users.next().is_none() {
             let mut stmt = connection.prepare(&format!(
-                "SELECT username FROM player_data where username = \'{}\'",
-                request.request.username
+                "UPDATE player_data SET username = \'{}\' where player_id = \'{}\'",
+                request.request.username, account_id
             ))?;
-
-            let mut users = stmt.query_map((), |row| {
-                Ok(QueryResultPlayerUsernames {
-                    _username: row.get("username")?,
-                })
-            })?;
-
-            if users.next().is_none() {
-                let mut stmt = connection.prepare(&format!(
-                    "UPDATE player_data SET username = \'{}\' where player_id = \'{}\'",
-                    request.request.username, account_id
-                ))?;
-                stmt.execute([])?;
-            } else {
-                let response = match serde_json::to_string(&SetPlayerUsernameResponse::Error {
-                    error_text: "Username is already taken".to_string(),
-                }) {
-                    Ok(body) => body.as_bytes().to_vec(),
-                    Err(err) => return Err(Error::from_str(500, err)),
-                };
-                return Ok(tide::Response::builder(200).body(response).build());
-            }
+            stmt.execute([])?;
+        } else {
+            let response = match serde_json::to_string(&SetPlayerUsernameResponse::Error {
+                error_text: "Username is already taken".to_string(),
+            }) {
+                Ok(body) => body.as_bytes().to_vec(),
+                Err(err) => return Err(Error::from_str(500, err)),
+            };
+            return Ok(tide::Response::builder(200).body(response).build());
         }
     }
 
@@ -234,34 +240,34 @@ async fn get_player_username(
     supabase: &SupabaseConnection,
     database: &Database,
 ) -> tide::Result {
-    // Verify its a real user
-    let claims = verify_decode_jwt::<()>(&req, supabase)?;
-    let id = match Uuid::parse_str(&claims.sub) {
-        Ok(uuid) => uuid,
-        Err(_) => return Err(Error::from_str(500, "Failed to get user id")),
+    let Ok(user_id) = req.param("user_id")?.parse::<Uuid>() else {
+        return Err(Error::from_str(500, "Failed to get user id"));
     };
 
-    let account_id = serde_json::to_string(&AccountId { id })?;
+    // Verify its a real authenticated user requesting a username
+    let _ = verify_decode_jwt::<()>(&req, supabase)?;
 
-    let mut player_username = String::new();
+    let account_id = serde_json::to_string(&AccountId { id: user_id })?;
 
-    if let Ok(connection) = database.connection.try_lock() {
-        {
-            let mut stmt = connection.prepare(&format!(
-                "SELECT username FROM player_data WHERE player_id = \'{}\'",
-                account_id
-            ))?;
-            let mut users = stmt.query_map((), |row| {
-                Ok(QueryResultPlayerUsernames {
-                    _username: row.get("username")?,
-                })
-            })?;
+    let player_username;
 
-            if let Some(Ok(username)) = users.next() {
-                player_username = username._username
-            } else {
-                return Err(Error::from_str(500, "No players matching that id found"));
-            }
+    let connection = database.connection.lock().await;
+
+    {
+        let mut stmt = connection.prepare(&format!(
+            "SELECT username FROM player_data WHERE player_id = \'{}\'",
+            account_id
+        ))?;
+        let mut users = stmt.query_map((), |row| {
+            Ok(QueryResultPlayerUsernames {
+                _username: row.get("username")?,
+            })
+        })?;
+
+        if let Some(Ok(username)) = users.next() {
+            player_username = username._username
+        } else {
+            return Err(Error::from_str(500, "No players matching that id found"));
         }
     }
 

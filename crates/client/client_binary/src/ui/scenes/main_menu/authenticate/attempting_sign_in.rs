@@ -21,7 +21,7 @@ pub(super) fn setup_attempt_sign_in(mut commands: Commands, colors: Res<CurrentC
     let modal = modal_panel(
         AuthenticationModal,
         ModalStyle {
-            with_close_button: false,
+            can_close: false,
             close_button_bundle: None::<()>,
             modal_size: Some((Val::Percent(100.0), Val::Percent(100.0))),
             outline: true,

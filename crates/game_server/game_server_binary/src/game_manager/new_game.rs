@@ -101,6 +101,7 @@ impl Command for NewGameCommand {
                     max_players,
                     object_id_service: id_service.clone(),
                     owning_player: self.owning_player,
+                    game_name: self.new_game_settings.game_name.clone(),
                 });
             },
         );

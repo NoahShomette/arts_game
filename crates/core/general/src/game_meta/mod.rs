@@ -51,6 +51,7 @@ pub struct GameSettings {
 /// Settings that can be changed and must be supplied when starting a new game
 #[derive(Serialize, Deserialize)]
 pub struct NewGameSettings {
+    pub game_name: String,
     pub max_player_count: u8,
     pub map_point_count: MapPointCount,
     pub map_size: MapSize,

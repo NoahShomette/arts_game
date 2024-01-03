@@ -65,6 +65,7 @@ fn new_game(
         connection_density: core_library::game_meta::ConnectionDensity::Dense,
         ticks_per_tick: 1,
         simulation_tick_amount: 1,
+        game_name: String::from("New game testing"),
     };
 
     let addr = game_server_info.http_url();
