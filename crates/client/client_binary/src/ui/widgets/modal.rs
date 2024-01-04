@@ -68,7 +68,6 @@ pub struct ModalStyle<B: Bundle> {
 }
 
 /// Construct and spawn a new modal
-#[allow(dead_code)]
 pub fn modal_panel<T>(
     menu_type: T,
     modal_style: ModalStyle<impl Bundle>,

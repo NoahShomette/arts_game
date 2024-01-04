@@ -5,10 +5,13 @@
 //!
 //! The first two options should basically be tabs
 
-use bevy::app::Plugin;
+use bevy::{app::Plugin, ecs::component::Component};
 
 pub struct GamesPlugin;
 
 impl Plugin for GamesPlugin {
     fn build(&self, _app: &mut bevy::prelude::App) {}
 }
+
+#[derive(Component)]
+pub struct GamesTabs;
