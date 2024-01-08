@@ -14,9 +14,11 @@ pub mod auth_server;
 pub mod authentication;
 pub mod game_meta;
 pub mod game_simulation;
+pub mod game_state;
 pub mod network;
 pub mod objects;
 pub mod player;
+pub mod saving;
 
 #[derive(Resource)]
 pub struct TaskPoolRes(pub TaskPool);

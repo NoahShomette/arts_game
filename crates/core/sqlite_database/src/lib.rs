@@ -2,7 +2,6 @@ use async_mutex::Mutex;
 use database_traits::DatabaseData;
 use general::clone_async_sender;
 use rusqlite::{params_from_iter, Error, Transaction};
-use saving::DatabaseSavePlugin;
 use schemes::{
     game_server::{setup_game_server_schemes, GameServerPlugin},
     DatabaseSchemeAppExtension,
@@ -19,7 +18,6 @@ use bevy::{
 use rusqlite::Connection;
 
 pub mod database_traits;
-pub mod saving;
 pub mod schemes;
 pub mod update_row;
 
@@ -35,7 +33,7 @@ impl Plugin for DatabasePlugin {
             )),
         });
 
-        app.add_plugins((GameServerPlugin, DatabaseSavePlugin));
+        app.add_plugins(GameServerPlugin);
 
         app.server_register_sql_action::<UpdateRow>();
     }
@@ -67,7 +65,7 @@ pub struct DatabaseDataRegistry {
 }
 
 /// Fn that sets up the game world with everything needed by the save and database systems
-pub fn game_world_setup_saving(server_world: &World, game_world: &mut World) {
+pub fn game_world_setup_db(server_world: &World, game_world: &mut World) {
     game_world.insert_resource(
         clone_async_sender::<UpdateRow>(server_world)
             .expect("AsyncChannelSender<UpdateRow> not found"),

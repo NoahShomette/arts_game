@@ -17,7 +17,7 @@ use bevy::{
 use clap::{Parser, Subcommand};
 
 use core_library::authentication::client_authentication::{
-    PasswordLoginInfo, SignInEvent, SignOutEvent, SignUpEvent,
+    EmailPasswordCredentials, SignInEvent, SignOutEvent, SignUpEvent,
 };
 
 pub struct ConsoleParserPlugin;
@@ -105,10 +105,10 @@ fn try_parse_stdin(
         match AppCommands::try_parse_from(line) {
             Ok(command) => match command.commands {
                 SubCommands::SignUp { email, password } => sign_up_events.send(SignUpEvent {
-                    info: PasswordLoginInfo::new(&email, &password, false),
+                    info: EmailPasswordCredentials::new(&email, &password, false),
                 }),
                 SubCommands::SignIn { email, password } => sign_in_events.send(SignInEvent {
-                    login_info: PasswordLoginInfo::new(&email, &password, false),
+                    login_info: EmailPasswordCredentials::new(&email, &password, false),
                 }),
                 SubCommands::SignOut => sign_out_events.send(SignOutEvent),
             },

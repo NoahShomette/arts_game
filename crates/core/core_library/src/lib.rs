@@ -6,8 +6,8 @@ pub use general::{
 #[cfg(feature = "http_server_feature")]
 pub use http_server;
 
-#[cfg(feature = "game_generator")]
-pub use game_generation;
+#[cfg(feature = "game_management_feature")]
+pub use game_management;
 
 #[cfg(feature = "database")]
 pub use sqlite_database;

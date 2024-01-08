@@ -7,7 +7,7 @@ use std::sync::{
 
 use bevy::prelude::Resource;
 use core_library::authentication::client_authentication::{
-    Claims, PasswordLoginInfo, RefreshToken,
+    Claims, EmailPasswordCredentials, RefreshToken,
 };
 use ehttp::Response;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
@@ -22,8 +22,8 @@ struct InternalPasswordLoginInfo {
     password: String,
 }
 
-impl From<PasswordLoginInfo> for InternalPasswordLoginInfo {
-    fn from(value: PasswordLoginInfo) -> Self {
+impl From<EmailPasswordCredentials> for InternalPasswordLoginInfo {
+    fn from(value: EmailPasswordCredentials) -> Self {
         Self {
             email: value.email().to_string(),
             password: value.password().to_string(),
@@ -98,7 +98,7 @@ impl SupabaseConnection {
 
     pub async fn sign_up_password(
         &self,
-        sign_up_info: PasswordLoginInfo,
+        sign_up_info: EmailPasswordCredentials,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/signup", self.url);
 
@@ -124,7 +124,7 @@ impl SupabaseConnection {
 
     pub async fn sign_in_password(
         &self,
-        sign_in_info: PasswordLoginInfo,
+        sign_in_info: EmailPasswordCredentials,
     ) -> Result<Response, crate::authentication::supabase::errors::AuthErrors> {
         let request_url: String = format!("{}/auth/v1/token?grant_type=password", self.url);
 

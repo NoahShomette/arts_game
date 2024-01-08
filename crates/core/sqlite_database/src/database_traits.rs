@@ -1,5 +1,3 @@
-use general::game_meta::GameId;
-
 /// A trait that all data submitted into the database must implement
 pub trait DatabaseData {
     /// Converts this data into itself
@@ -22,11 +20,6 @@ pub trait DatabaseData {
 /// A table in the database that does not require a [`GameId`]
 pub trait DatabaseTable {
     fn table_name(&self) -> String;
-}
-
-/// A table in the database that does require a [`GameId`]
-pub trait GameDatabaseTable {
-    fn table_name(&self, game_id: &GameId) -> String;
 }
 
 /// A struct used to represent data in the form that it will be saved into the database in. The data in here is copied straight into the database

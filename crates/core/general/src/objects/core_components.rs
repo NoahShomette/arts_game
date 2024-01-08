@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::auth_server::AccountId;
 
 /// An Id uniquely identifying an object in the game state
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct ObjectId {
     pub id: u32,
 }

@@ -19,6 +19,8 @@ serde_json = { workspace = true }
 
 # general
 uuid = { workspace = true }
+chrono = { workspace = true }
+bevy-trait-query = { version = "0.4.0" }
 
 # Ws Networking
 bevy_eventwork = { workspace = true }

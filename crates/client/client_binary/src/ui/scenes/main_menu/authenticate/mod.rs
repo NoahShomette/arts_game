@@ -1,17 +1,27 @@
+use std::path::Path;
+
 use bevy::{
-    app::{Plugin, Update},
+    app::{Plugin, Startup, Update},
     ecs::{
         change_detection::DetectChanges,
         schedule::{common_conditions::in_state, IntoSystemConfigs, OnEnter},
         system::{Commands, Res, Resource, SystemId},
     },
+    reflect::TypePath,
 };
 
-use core_library::authentication::AppAuthenticationState;
+use bevy_persistent::{Persistent, StorageFormat};
+use core_library::authentication::{
+    client_authentication::EmailPasswordCredentials, AppAuthenticationState,
+};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     app::AppState,
-    ui::{marker_component, scenes::cleanup_scene, widgets::basic_button::BasicButtonAppExtension},
+    ui::{
+        marker_component, scenes::cleanup_scene, widgets::basic_button::BasicButtonAppExtension,
+        UiSystemIdResource,
+    },
 };
 
 use self::{
@@ -49,9 +59,15 @@ impl Plugin for AuthenticatePlugin {
             verify_email: (verify_email, cleanup_auth_modal),
             attempting_sign_in: (attempting_sign_in, cleanup_auth_modal),
         });
+
+        app.init_resource::<FirstSignIn>();
+
+        app.add_systems(Startup, load_login_info);
+
         app.add_systems(
             OnEnter(AppState::MainMenu),
-            setup_auth_ui.run_if(in_state(AppAuthenticationState::NotAuthenticated)),
+            (setup_auth_ui, sign_in_if_saved_info)
+                .run_if(in_state(AppAuthenticationState::NotAuthenticated)),
         );
 
         app.add_systems(
@@ -110,6 +126,12 @@ struct IntermediatePasswordSaver {
     pub password: String,
 }
 
+#[derive(Resource, Serialize, Deserialize)]
+pub struct SavedEmailPasswordCredentials(pub Option<EmailPasswordCredentials>);
+
+#[derive(Resource, Default)]
+pub struct FirstSignIn;
+
 fn handle_change_auth_states(
     auth_flow: Option<Res<UiAuthFlow>>,
     mut commands: Commands,
@@ -159,4 +181,37 @@ fn setup_auth_ui(mut commands: Commands) {
         authentication_flow: AuthenticationFlow::EnterInformationSignIn,
         last_state: None,
     });
+}
+
+fn load_login_info(mut commands: Commands) {
+    let config_dir = dirs::config_dir()
+        .map(|native_config_dir| native_config_dir.join("arts-game"))
+        .unwrap_or(Path::new("local").join("configuration"));
+
+    commands.insert_resource(
+        Persistent::<SavedEmailPasswordCredentials>::builder()
+            .name("saved sign in info")
+            .format(StorageFormat::Json)
+            .path(config_dir.join("saved-sign-in-info.json"))
+            .default(SavedEmailPasswordCredentials(None))
+            .build()
+            .expect("failed to initialize key bindings"),
+    )
+}
+
+fn sign_in_if_saved_info(
+    resource: Res<UiSystemIdResource>,
+    mut commands: Commands,
+    option_first_sign: Option<Res<FirstSignIn>>,
+) {
+    if option_first_sign.is_none() {
+        return;
+    }
+
+    commands.run_system(
+        *resource
+            .map
+            .get(SignInButton::type_path())
+            .expect("Failed to register sign in button. Expected in sign_in_if_saved_info"),
+    );
 }

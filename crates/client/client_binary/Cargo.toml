@@ -11,6 +11,7 @@ license = "MIT OR Apache-2.0"
 core_library = { path = "../../core/core_library" }
 serde = { workspace = true }
 serde_json = { workspace = true }
+chrono = { workspace = true }
 
 bevy = { workspace = true, default-features = true, features = [
     "bevy_ui",
@@ -25,6 +26,8 @@ bevy = { workspace = true, default-features = true, features = [
 bevy_state_curves = { workspace = true }
 bevy_tweening = "0.9.0"
 bevy_asset_loader = { version = "0.18.0" }
+bevy-persistent = { workspace = true, features = ["json"] }
+dirs = { workspace = true }
 
 # Websocket Networking
 bevy_eventwork = { workspace = true }

@@ -15,17 +15,18 @@ use std::sync::{
 use super::SignInResponse;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct PasswordLoginInfo {
+pub struct EmailPasswordCredentials {
     is_player: bool,
     email: String,
     password: String,
 }
 
-impl PasswordLoginInfo {
-    pub fn new(email: &str, password: &str, is_player: bool) -> PasswordLoginInfo {
-        PasswordLoginInfo {
+impl EmailPasswordCredentials {
+    /// Creates a new set of credentials. Hashes the password
+    pub fn new(email: &str, password: &str, is_player: bool) -> EmailPasswordCredentials {
+        EmailPasswordCredentials {
             email: email.to_string(),
-            password: Base64::encode_string(&Sha3_256::digest(password)),
+            password: hash_password(password),
             is_player,
         }
     }
@@ -41,12 +42,30 @@ impl PasswordLoginInfo {
     pub fn is_player(&self) -> bool {
         self.is_player
     }
+
+    /// Creates a new credentials with a pre hashed password
+    pub fn new_pre_hashed(
+        email: &str,
+        password: String,
+        is_player: bool,
+    ) -> EmailPasswordCredentials {
+        EmailPasswordCredentials {
+            email: email.to_string(),
+            password,
+            is_player,
+        }
+    }
+}
+
+/// Hashes a password. All passwords are hashed before signing in or signing up.
+pub fn hash_password(password: &str) -> String {
+    Base64::encode_string(&Sha3_256::digest(password))
 }
 
 /// A request sent by a user to check if they are confirmed
 #[derive(Serialize, Deserialize, Clone)]
 pub struct IsUserEmailConfirmed {
-    pub info: PasswordLoginInfo,
+    pub info: EmailPasswordCredentials,
 }
 
 /// A request sent by a user to refresh their access token
@@ -105,13 +124,13 @@ pub struct ClientAuthenticationInfo {
 /// An event sent to sign in
 #[derive(Event, Clone)]
 pub struct SignInEvent {
-    pub login_info: PasswordLoginInfo,
+    pub login_info: EmailPasswordCredentials,
 }
 
 /// An event sent to sign up
 #[derive(Event, Clone)]
 pub struct SignUpEvent {
-    pub info: PasswordLoginInfo,
+    pub info: EmailPasswordCredentials,
 }
 
 /// An event sent to logout
@@ -121,5 +140,5 @@ pub struct SignOutEvent;
 pub enum AuthenticationResponses {
     SignIn,
     SignOut,
-    SignUp(PasswordLoginInfo),
+    SignUp(EmailPasswordCredentials),
 }

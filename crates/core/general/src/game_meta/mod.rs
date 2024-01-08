@@ -6,6 +6,7 @@ use bevy::{
     reflect::TypePath,
     utils::Uuid,
 };
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::auth_server::AccountId;
@@ -110,34 +111,56 @@ impl MapPointCount {
 /// Holds the [`AccountId`]s of every player that is actually playing in the game
 #[derive(Serialize, Deserialize, Clone, Component, Default)]
 pub struct GamePlayers {
-    pub players: Vec<AccountId>,
+    pub players: Vec<PlayerInformation>,
 }
 
 impl GamePlayers {
     /// Creates a new Connected Players with the given id in it
     pub fn new_with_id(player_id: AccountId) -> GamePlayers {
         GamePlayers {
-            players: vec![player_id],
+            players: vec![PlayerInformation::new(player_id)],
         }
     }
 
     /// Inserts a Player Id into the list
     pub fn insert(&mut self, player_id: AccountId) {
-        self.players.push(player_id)
+        self.players.push(PlayerInformation::new(player_id))
     }
 
     /// Removes all instances of a player id from the list
     pub fn remove(&mut self, player_id: &AccountId) {
-        self.players.retain(|x| x != player_id);
+        self.players.retain(|x| &x.account_id != player_id);
     }
 
     /// Checks if the given player id is present
     pub fn contains(&self, player_id: &AccountId) -> bool {
-        self.players.contains(player_id)
+        self.players
+            .iter()
+            .any(|info| &info.account_id == player_id)
     }
 
     /// Returns the amount of players in the game
     pub fn count(&self) -> u8 {
         self.players.len() as u8
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Component)]
+pub struct PlayerInformation {
+    account_id: AccountId,
+    last_login_time: Option<DateTime<Utc>>,
+    last_log_off_time: DateTime<Utc>,
+    // The below are commented out as they are not yet implemented
+    // faction: Faction,
+    // player_relationships: Vec<(Relationship)>
+}
+
+impl PlayerInformation {
+    pub fn new(player_id: AccountId) -> PlayerInformation {
+        PlayerInformation {
+            account_id: player_id,
+            last_login_time: None,
+            last_log_off_time: Utc::now(),
+        }
     }
 }

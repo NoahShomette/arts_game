@@ -1,9 +1,15 @@
+//! The games menu does three things
+//! - Show a player all games they are in
+//! - Show a player all public open games they can join
+//! - Create a new game
+//!
+//! The first two options should basically be tabs
+
 use bevy::{
     app::Plugin,
     ecs::{
         component::Component,
-        schedule::NextState,
-        system::{Commands, Res, ResMut},
+        system::{Commands, Res},
     },
     hierarchy::BuildChildren,
     prelude::default,
@@ -20,37 +26,42 @@ use crate::ui::{
     colors::CurrentColors,
     marker_component,
     scenes::ScenesAppExtension,
-    widgets::basic_button::{basic_button, BasicButtonAppExtension, ButtonStyle},
+    widgets::tabbed_content::{tabbed_content, TabbedContentSettings},
+};
+
+use self::{
+    game_entry_button::{game_entry_button, GameEntryButtonPlugin, GameEntryButtonStyle},
+    games_data::GamesDataPlugin,
 };
 
 use super::MainMenuScreenState;
 
-pub struct MainMenuHomePlugin;
+mod game_entry_button;
+mod games_data;
 
-impl Plugin for MainMenuHomePlugin {
+pub struct GamesMenuPlugin;
+
+impl Plugin for GamesMenuPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_plugins((GameEntryButtonPlugin, GamesDataPlugin));
         app.add_scene(
-            marker_component::<MainMenuRootMarker>(),
-            setup_main_menu_ui,
-            MainMenuScreenState::HomePage,
-        );
-
-        app.add_button_handler(
-            marker_component::<GamesButton>(),
-            |mut next_state: ResMut<NextState<MainMenuScreenState>>| {
-                next_state.set(MainMenuScreenState::GamesPage)
-            },
+            marker_component::<GamesScreenRootMarker>(),
+            setup_games,
+            MainMenuScreenState::GamesPage,
         );
     }
 }
 
-#[derive(Component, TypePath)]
-struct MainMenuRootMarker;
+#[derive(Component)]
+pub struct GamesTabs;
 
 #[derive(Component, TypePath)]
-struct GamesButton;
+struct GamesScreenRootMarker;
 
-fn setup_main_menu_ui(mut commands: Commands, colors: Res<CurrentColors>) {
+#[derive(Component, TypePath)]
+struct GameEntryMarker;
+
+fn setup_games(mut commands: Commands, colors: Res<CurrentColors>) {
     // root ui for entire screen
     let screen_container = commands
         .spawn(NodeBundle {
@@ -60,23 +71,24 @@ fn setup_main_menu_ui(mut commands: Commands, colors: Res<CurrentColors>) {
                 justify_content: JustifyContent::SpaceBetween,
                 align_items: AlignItems::Center,
                 position_type: PositionType::Absolute,
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             ..default()
         })
-        .insert(MainMenuRootMarker)
+        .insert(GamesScreenRootMarker)
         .id();
 
-    // Left area ui
-    let left_ui = commands
+    // top area ui
+    let top_ui = commands
         .spawn(NodeBundle {
             style: Style {
-                width: Val::Percent(50.0),
-                height: Val::Percent(100.0),
+                width: Val::Percent(100.0),
+                height: Val::Percent(15.0),
                 justify_content: JustifyContent::SpaceEvenly,
                 align_items: AlignItems::Center,
                 position_type: PositionType::Relative,
-                flex_direction: FlexDirection::Column,
+                flex_direction: FlexDirection::Row,
                 ..default()
             },
             ..default()
@@ -84,7 +96,7 @@ fn setup_main_menu_ui(mut commands: Commands, colors: Res<CurrentColors>) {
         .with_children(|parent| {
             parent.spawn(
                 TextBundle::from_section(
-                    "Arts Game",
+                    "Games",
                     TextStyle {
                         font_size: 100.0,
                         color: Color::WHITE,
@@ -105,13 +117,28 @@ fn setup_main_menu_ui(mut commands: Commands, colors: Res<CurrentColors>) {
         })
         .id();
 
-    let button_style = ButtonStyle {
-        bundle: None::<()>,
-        text: "Games".to_string(),
-        font_size: 64.0,
-    };
-    let button = basic_button(GamesButton, button_style, &mut commands, &colors);
-    commands.entity(left_ui).push_children(&[button]);
+    let (tab_root, tabs) = tabbed_content(
+        GamesTabs,
+        TabbedContentSettings {
+            tabs: vec!["Games".to_string(), "Open Games".to_string()],
+            open_tab: 0,
+        },
+        &colors,
+        &mut commands,
+    );
 
-    commands.entity(screen_container).push_children(&[left_ui]);
+    for (entity, _) in tabs.iter() {
+        let tab_content = game_entry_button(
+            GameEntryMarker,
+            GameEntryButtonStyle::default(),
+            &mut commands,
+            &colors,
+        );
+
+        commands.entity(*entity).push_children(&[tab_content]);
+    }
+
+    commands
+        .entity(screen_container)
+        .push_children(&[top_ui, tab_root]);
 }

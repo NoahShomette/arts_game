@@ -127,12 +127,14 @@ where
         .spawn((NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
-                height: Val::Percent(90.0),
+                height: Val::Percent(100.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 position_type: PositionType::Relative,
+                border: UiRect::top(Val::Px(5.0)),
                 ..default()
             },
+            border_color: colors.accent().into(),
             ..default()
         },))
         .id();
@@ -166,7 +168,7 @@ where
         let button_style = ButtonStyle {
             bundle: Some(TabContentEntity(content)),
             text: tab.clone(),
-            font_size: 25.0,
+            font_size: 40.0,
         };
         let button = basic_button(TabContentButton, button_style, commands, colors);
 

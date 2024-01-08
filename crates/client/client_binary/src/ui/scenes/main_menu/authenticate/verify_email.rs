@@ -14,7 +14,7 @@ use bevy::{
 use core_library::{
     async_runners,
     authentication::{
-        client_authentication::{IsUserEmailConfirmed, PasswordLoginInfo, SignInEvent},
+        client_authentication::{EmailPasswordCredentials, IsUserEmailConfirmed, SignInEvent},
         AppAuthenticationState, AuthenticationServerInfo, SignUpDetails,
     },
     network::HttpRequestMeta,
@@ -166,7 +166,7 @@ fn check_if_email_verified(
     let addr = auth_server_info.addr.clone();
     let message = match serde_json::to_string(&HttpRequestMeta {
         request: IsUserEmailConfirmed {
-            info: PasswordLoginInfo::new(
+            info: EmailPasswordCredentials::new(
                 &password_resource.email,
                 &password_resource.password,
                 true,
@@ -246,7 +246,7 @@ fn handle_check_verify_responses(
                         .map(|state| state.authentication_flow.clone());
 
                     su.send(SignInEvent {
-                        login_info: PasswordLoginInfo::new(
+                        login_info: EmailPasswordCredentials::new(
                             &password_resource.email,
                             &password_resource.password,
                             true,

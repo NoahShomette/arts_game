@@ -15,9 +15,10 @@ use bevy::{
         AlignItems, JustifyContent, PositionType, Style, UiRect, Val,
     },
 };
+use bevy_persistent::Persistent;
 use bevy_simple_text_input::{TextInput, TextInputInner};
 use core_library::authentication::{
-    client_authentication::{PasswordLoginInfo, SignInEvent, SignUpEvent},
+    client_authentication::{EmailPasswordCredentials, SignInEvent, SignUpEvent},
     SignUpResultEvent,
 };
 
@@ -29,7 +30,10 @@ use crate::ui::{
     },
 };
 
-use super::{AuthenticationFlow, IntermediatePasswordSaver, UiAuthFlow};
+use super::{
+    AuthenticationFlow, FirstSignIn, IntermediatePasswordSaver, SavedEmailPasswordCredentials,
+    UiAuthFlow,
+};
 
 #[derive(Component, TypePath)]
 pub(super) struct AuthenticationModal;
@@ -94,18 +98,38 @@ pub(super) fn sign_in(
     mut su: EventWriter<SignInEvent>,
     mut password_resource: ResMut<IntermediatePasswordSaver>,
     mut commands: Commands,
+    mut saved_info: ResMut<Persistent<SavedEmailPasswordCredentials>>,
+    first_sign_in: Option<Res<FirstSignIn>>,
 ) {
     let last_state = match state {
         Some(state) => Some(state.authentication_flow.clone()),
         None => None,
     };
-    su.send(SignInEvent {
-        login_info: PasswordLoginInfo::new(
-            &password_resource.email,
-            &password_resource.password,
-            true,
-        ),
-    });
+
+    if first_sign_in.is_some() {
+        commands.remove_resource::<FirstSignIn>();
+        if let Some(info) = &saved_info.0 {
+            su.send(SignInEvent {
+                login_info: info.clone(),
+            });
+        }
+    } else {
+        let _ = saved_info.set(SavedEmailPasswordCredentials(Some(
+            EmailPasswordCredentials::new(
+                &password_resource.email,
+                &password_resource.password,
+                true,
+            ),
+        )));
+
+        su.send(SignInEvent {
+            login_info: EmailPasswordCredentials::new(
+                &password_resource.email,
+                &password_resource.password,
+                true,
+            ),
+        });
+    }
 
     password_resource.password.clear();
 
@@ -120,13 +144,29 @@ pub(super) fn sign_up(
     mut su: EventWriter<SignUpEvent>,
     mut password_resource: ResMut<IntermediatePasswordSaver>,
     mut commands: Commands,
+    mut saved_info: ResMut<Persistent<SavedEmailPasswordCredentials>>,
 ) {
     let last_state = match state {
         Some(state) => Some(state.authentication_flow.clone()),
         None => None,
     };
+
+    if saved_info.0.is_none() {
+        let _ = saved_info.set(SavedEmailPasswordCredentials(Some(
+            EmailPasswordCredentials::new(
+                &password_resource.email,
+                &password_resource.password,
+                true,
+            ),
+        )));
+    }
+
     su.send(SignUpEvent {
-        info: PasswordLoginInfo::new(&password_resource.email, &password_resource.password, true),
+        info: EmailPasswordCredentials::new(
+            &password_resource.email,
+            &password_resource.password,
+            true,
+        ),
     });
 
     password_resource.password.clear();

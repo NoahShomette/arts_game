@@ -2,7 +2,9 @@ use bevy::log::info;
 use core_library::auth_server::player_data::PlayerGames;
 use core_library::auth_server::AccountId;
 
-use core_library::authentication::client_authentication::{PasswordLoginInfo, RefreshTokenRequest};
+use core_library::authentication::client_authentication::{
+    EmailPasswordCredentials, RefreshTokenRequest,
+};
 use core_library::authentication::{SignInResponse, SignUpResponse};
 use core_library::http_server::request_access_token;
 use core_library::network::HttpRequestMeta;
@@ -36,7 +38,7 @@ async fn sign_up(
     database: &Database,
 ) -> tide::Result {
     info!("Received Sign Up Request");
-    let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
+    let request: HttpRequestMeta<EmailPasswordCredentials> = req.body_json().await?;
     let is_player = request.request.is_player();
     let result = supabase.sign_up_password(request.request).await?;
 
@@ -116,7 +118,7 @@ impl Endpoint<()> for SignIn {
 
 async fn sign_in(mut req: Request<()>, supabase: &SupabaseConnection) -> tide::Result {
     info!("Received Sign In Request");
-    let request: HttpRequestMeta<PasswordLoginInfo> = req.body_json().await?;
+    let request: HttpRequestMeta<EmailPasswordCredentials> = req.body_json().await?;
     let result = supabase.sign_in_password(request.request).await?;
     match result.text() {
         Some(body) => Ok(tide::Response::builder(200).body(body).build()),

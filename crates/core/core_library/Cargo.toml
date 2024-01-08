@@ -7,7 +7,7 @@ license = "MIT OR Apache-2.0"
 
 [features]
 http_server_feature = ["tide", "http_server", "async-trait"]
-game_generator = ["game_generation"]
+game_management_feature = ["game_management"]
 database = ["sqlite_database"]
 
 [dependencies]
@@ -17,7 +17,7 @@ tide = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
 
 # Game Generation
-game_generation = { path = "../game_generation", optional = true }
+game_management = { path = "../game_management", optional = true }
 
 # General
 general = { path = "../general" }

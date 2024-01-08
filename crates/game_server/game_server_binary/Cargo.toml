@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 core_library = { path = "../../core/core_library", features = [
     "http_server_feature",
-    "game_generator",
+    "game_management_feature",
     "database",
 ] }
 bevy = { workspace = true, default-features = false, features = [

@@ -9,81 +9,39 @@ use general::{
     objects::core_components::{ObjectGeneral, ObjectId, ObjectPosition},
 };
 
-use crate::database_traits::{DatabaseData, DatabaseTable, GameDatabaseTable};
+use crate::database_traits::{DatabaseData, DatabaseTable};
 
-use self::{
-    game_tables::{CreateGameCurvesTable, CreateGamePlayersTable, InsertGameCurvesRow},
-    games_meta::InsertGamesMetaRow,
-};
+use self::games::InsertGamesTableRow;
 
 pub use super::DatabaseSchemeAppExtension;
 
-pub mod game_actions;
-pub mod game_tables;
-pub mod games_meta;
+pub mod games;
 
 pub(crate) struct GameServerPlugin;
 
 impl Plugin for GameServerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(GamesMetaTable);
-        app.insert_resource(GameCurvesTable);
-        app.insert_resource(GamesPlayersTable);
+        app.insert_resource(GamesTable);
 
-        app.server_register_sql_action::<InsertGamesMetaRow>();
-        app.server_register_sql_action::<InsertGameCurvesRow>();
-        app.server_register_sql_action::<CreateGameCurvesTable>();
-        app.server_register_sql_action::<CreateGamePlayersTable>();
+        app.server_register_sql_action::<InsertGamesTableRow>();
     }
 }
 
 /// Adds all the game server schemes to the server world
 pub(crate) fn setup_game_server_schemes(server_world: &World, game_world: &mut World) {
     game_world.insert_resource(
-        clone_async_sender::<InsertGamesMetaRow>(server_world)
+        clone_async_sender::<InsertGamesTableRow>(server_world)
             .expect("AsyncChannelSender<InsertGamesMetaRow> not found"),
     );
-    game_world.insert_resource(
-        clone_async_sender::<InsertGameCurvesRow>(server_world)
-            .expect("AsyncChannelSender<InsertGameCurvesRow> not found"),
-    );
-    game_world.insert_resource(
-        clone_async_sender::<CreateGameCurvesTable>(server_world)
-            .expect("AsyncChannelSender<CreateGameCurvesTable> not found"),
-    );
-    game_world.insert_resource(
-        clone_async_sender::<CreateGamePlayersTable>(server_world)
-            .expect("AsyncChannelSender<CreateGamePlayersTable> not found"),
-    );
-    game_world.insert_resource(GamesMetaTable);
-    game_world.insert_resource(GameCurvesTable);
-    game_world.insert_resource(GamesPlayersTable);
+    game_world.insert_resource(GamesTable);
 }
 
 #[derive(Resource)]
-pub struct GamesMetaTable;
+pub struct GamesTable;
 
-impl DatabaseTable for GamesMetaTable {
+impl DatabaseTable for GamesTable {
     fn table_name(&self) -> String {
         "games_meta".to_string()
-    }
-}
-
-#[derive(Resource)]
-pub struct GameCurvesTable;
-
-impl GameDatabaseTable for GameCurvesTable {
-    fn table_name(&self, game_id: &GameId) -> String {
-        format!("game_curves_{}", game_id.id_as_string())
-    }
-}
-
-#[derive(Resource)]
-pub struct GamesPlayersTable;
-
-impl GameDatabaseTable for GamesPlayersTable {
-    fn table_name(&self, game_id: &GameId) -> String {
-        format!("game_players_{}", game_id.id_as_string())
     }
 }
 
