@@ -17,7 +17,7 @@ pub struct HttpRequestMeta<T> {
 /// A struct that holds what a games address information is. Both HTTP and Websocket
 ///
 /// `server_addr` should be just the address. Eg, `127.0.0.1` not `http://127.0.0.1`
-#[derive(Resource, Serialize, Deserialize, Clone)]
+#[derive(Resource, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct GameAddrInfo {
     pub server_addr: String,
     pub http_port: u16,
@@ -41,5 +41,26 @@ impl GameAddrInfo {
             &self.http_port.to_string()
         ))
         .expect("Invalid address given")
+    }
+}
+
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
+pub enum ServerType {
+    Official,
+    Community,
+    PlayerHosted,
+}
+
+impl ServerType {
+    /// Tries to convert from an i32 into [`ServerType`].
+    ///
+    /// Used for values taken from the database
+    pub fn try_from_i32(state: i32) -> Option<ServerType> {
+        match state {
+            0 => Some(ServerType::Official),
+            1 => Some(ServerType::Community),
+            2 => Some(ServerType::PlayerHosted),
+            _ => None,
+        }
     }
 }

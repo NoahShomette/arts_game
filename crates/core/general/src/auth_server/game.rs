@@ -1,7 +1,23 @@
 use bevy::utils::Uuid;
 use serde::{Deserialize, Serialize};
 
-use crate::{game_meta::GameId, network::GameAddrInfo};
+use crate::{
+    game_meta::GameId,
+    network::{GameAddrInfo, ServerType},
+};
+
+use super::AccountId;
+
+/// Info on each game that the auth server maintains
+#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
+pub struct GameAuthServerInfo {
+    pub game_id: GameId,
+    pub game_ip: GameAddrInfo,
+    pub is_open: bool,
+    pub in_progress: bool,
+    pub hosting_server_id: AccountId,
+    pub server_type: ServerType,
+}
 
 // ------------ HTTP Requests
 
@@ -29,4 +45,16 @@ pub struct RequestNewGameRequest {
 #[derive(Serialize, Deserialize)]
 pub struct RequestNewGameIdResponse {
     pub game_id: GameId,
+}
+
+/// Ok response returned from requests for open games
+///
+/// ### Target:
+/// Game Server
+///
+/// ### Sender:
+/// Authentication Server
+#[derive(Serialize, Deserialize)]
+pub struct RequestOpenGamesResponse {
+    pub games: Vec<GameAuthServerInfo>,
 }

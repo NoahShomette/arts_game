@@ -73,3 +73,12 @@ pub fn game_world_setup_db(server_world: &World, game_world: &mut World) {
 
     setup_game_server_schemes(server_world, game_world)
 }
+
+/// Tries to deserialize a possible bool from an i32 taken from the database
+pub fn deserialize_bool(maybe_bool: i32) -> Option<bool> {
+    match maybe_bool {
+        0 => Some(false),
+        1 => Some(true),
+        _ => None,
+    }
+}

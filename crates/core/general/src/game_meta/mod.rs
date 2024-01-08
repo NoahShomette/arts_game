@@ -11,6 +11,29 @@ use serde::{Deserialize, Serialize};
 
 use crate::auth_server::AccountId;
 
+#[derive(Serialize, Deserialize, Clone)]
+pub enum GameStateEnum {
+    PreGameLobby,
+    Playing,
+    GameOver,
+    Paused,
+}
+
+impl GameStateEnum {
+    /// Tries to convert from an i32 into [`GameStateEnum`].
+    ///
+    /// Used for values taken from the database
+    pub fn try_from_i32(state: i32) -> Option<GameStateEnum> {
+        match state {
+            0 => Some(GameStateEnum::PreGameLobby),
+            1 => Some(GameStateEnum::Playing),
+            2 => Some(GameStateEnum::GameOver),
+            3 => Some(GameStateEnum::Paused),
+            _ => None,
+        }
+    }
+}
+
 #[derive(
     Serialize,
     Deserialize,

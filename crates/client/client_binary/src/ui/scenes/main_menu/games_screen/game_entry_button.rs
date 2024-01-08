@@ -22,6 +22,7 @@ use bevy::{
 };
 use bevy_tweening::{lens::TransformScaleLens, Animator, EaseFunction, RepeatCount, Tween};
 use chrono::{DateTime, Utc};
+use core_library::network::ServerType;
 
 use crate::ui::{colors::CurrentColors, widgets::basic_button::DisabledButton};
 
@@ -117,8 +118,8 @@ pub struct GameEntryButtonStyle {
     pub game_name: String,
     pub player_count: u8,
     pub max_player_count: u8,
-    pub server_type: u8,
-    pub game_started: DateTime<Utc>,
+    pub server_type: ServerType,
+    pub started_time: Option<DateTime<Utc>>,
 }
 
 impl Default for GameEntryButtonStyle {
@@ -127,8 +128,8 @@ impl Default for GameEntryButtonStyle {
             game_name: String::from("Arts Game"),
             player_count: 0,
             max_player_count: 10,
-            server_type: 2,
-            game_started: Utc::now().sub(chrono::Duration::hours(47)),
+            server_type: ServerType::PlayerHosted,
+            started_time: Some(Utc::now().sub(chrono::Duration::hours(47))),
         }
     }
 }
@@ -235,21 +236,36 @@ where
         },))
         .id();
 
-    let game_duration = Utc::now().sub(button_style.game_started);
+    match button_style.started_time {
+        Some(start_time) => {
+            let game_duration = Utc::now().sub(start_time);
+            let days = game_duration.num_days();
+            let remained_hours = game_duration.num_hours() - (days * 24);
 
-    let days = game_duration.num_days();
-    let remained_hours = game_duration.num_hours() - (days * 24);
-
-    commands.entity(game_info).with_children(|parent| {
-        parent.spawn(TextBundle::from_section(
-            format!("Game Length: {} days {} hours", days, remained_hours),
-            TextStyle {
-                font_size: 20.0,
-                color: colors.light_text(),
-                ..default()
-            },
-        ));
-    });
+            commands.entity(game_info).with_children(|parent| {
+                parent.spawn(TextBundle::from_section(
+                    format!("Game Length: {} days {} hours", days, remained_hours),
+                    TextStyle {
+                        font_size: 20.0,
+                        color: colors.light_text(),
+                        ..default()
+                    },
+                ));
+            });
+        }
+        None => {
+            commands.entity(game_info).with_children(|parent| {
+                parent.spawn(TextBundle::from_section(
+                    "Game Not Started",
+                    TextStyle {
+                        font_size: 20.0,
+                        color: colors.light_text(),
+                        ..default()
+                    },
+                ));
+            });
+        }
+    };
 
     commands.entity(entity).push_children(&[name_and_players]);
     commands.entity(entity).push_children(&[game_center]);

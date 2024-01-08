@@ -5,7 +5,7 @@ mod requests;
 
 use core_library::sqlite_database::Database;
 
-use self::requests::RequestNewGame;
+use self::requests::{RequestNewGame, RequestOpenGames};
 
 pub struct GameManagementPlugin;
 
@@ -16,6 +16,11 @@ impl Plugin for GameManagementPlugin {
                 tide.0.at("/games/request_new_game").post(RequestNewGame {
                     database: database.clone(),
                 });
+                tide.0
+                    .at("/games/get_open_games/:offset")
+                    .get(RequestOpenGames {
+                        database: database.clone(),
+                    });
             });
         });
     }

@@ -35,7 +35,7 @@ bevy_eventwork_mod_websockets = { workspace = true }
 
 # HTTP Networking
 ehttp = { workspace = true }
-
+url = { workspace = true }
 #ui crates
 bevy_simple_text_input = { git = "https://github.com/NoahShomette/bevy_simple_text_input.git", branch = "main" }
 

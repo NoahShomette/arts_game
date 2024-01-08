@@ -6,12 +6,16 @@
 //! The first two options should basically be tabs
 
 use bevy::{
-    app::Plugin,
+    app::{Plugin, Update},
     ecs::{
+        change_detection::DetectChanges,
         component::Component,
-        system::{Commands, Res},
+        entity::Entity,
+        query::With,
+        schedule::{common_conditions::in_state, IntoSystemConfigs},
+        system::{Commands, Query, Res, Resource},
     },
-    hierarchy::BuildChildren,
+    hierarchy::{BuildChildren, Children, DespawnRecursiveExt},
     prelude::default,
     reflect::TypePath,
     render::color::Color,
@@ -20,6 +24,10 @@ use bevy::{
         node_bundles::{NodeBundle, TextBundle},
         AlignItems, FlexDirection, JustifyContent, PositionType, Style, UiRect, Val,
     },
+    utils::{HashMap, Instant},
+};
+use core_library::{
+    auth_server::game::GameAuthServerInfo, game_meta::GameId, network::game_http::GameMetaInfo,
 };
 
 use crate::ui::{
@@ -30,11 +38,11 @@ use crate::ui::{
 };
 
 use self::{
-    game_entry_button::{game_entry_button, GameEntryButtonPlugin, GameEntryButtonStyle},
+    game_entry_button::{GameEntryButtonPlugin, GameEntryButtonStyle},
     games_data::GamesDataPlugin,
 };
-
 use super::MainMenuScreenState;
+use crate::ui::scenes::main_menu::games_screen::game_entry_button::game_entry_button;
 
 mod game_entry_button;
 mod games_data;
@@ -49,7 +57,40 @@ impl Plugin for GamesMenuPlugin {
             setup_games,
             MainMenuScreenState::GamesPage,
         );
+
+        app.add_systems(
+            Update,
+            (update_open_games_screen,).run_if(in_state(MainMenuScreenState::GamesPage)),
+        );
     }
+}
+
+#[derive(Resource)]
+pub struct OpenGamesData {
+    pub games: HashMap<
+        GameId,
+        (
+            GameAuthServerInfo,
+            Option<GameMetaInfo>,
+            Option<LastRequestInfo>,
+        ),
+    >,
+}
+
+#[derive(Resource)]
+pub struct PlayerGamesData {
+    pub games: HashMap<
+        GameId,
+        (
+            GameAuthServerInfo,
+            Option<GameMetaInfo>,
+            Option<LastRequestInfo>,
+        ),
+    >,
+}
+
+pub struct LastRequestInfo {
+    pub request_time: Instant,
 }
 
 #[derive(Component)]
@@ -57,6 +98,12 @@ pub struct GamesTabs;
 
 #[derive(Component, TypePath)]
 struct GamesScreenRootMarker;
+
+#[derive(Component, TypePath)]
+struct PlayerGamesButtonsHolder;
+
+#[derive(Component, TypePath)]
+struct OpenGamesButtonsHolder;
 
 #[derive(Component, TypePath)]
 struct GameEntryMarker;
@@ -127,18 +174,50 @@ fn setup_games(mut commands: Commands, colors: Res<CurrentColors>) {
         &mut commands,
     );
 
-    for (entity, _) in tabs.iter() {
-        let tab_content = game_entry_button(
-            GameEntryMarker,
-            GameEntryButtonStyle::default(),
-            &mut commands,
-            &colors,
-        );
-
-        commands.entity(*entity).push_children(&[tab_content]);
+    for (i, (entity, _)) in tabs.iter().enumerate() {
+        if i == 0 {
+            commands.entity(*entity).insert(PlayerGamesButtonsHolder);
+        }
+        if i == 1 {
+            commands.entity(*entity).insert(OpenGamesButtonsHolder);
+        }
     }
 
     commands
         .entity(screen_container)
         .push_children(&[top_ui, tab_root]);
+}
+
+fn update_open_games_screen(
+    mut commands: Commands,
+    colors: Res<CurrentColors>,
+    open_games_query: Query<(Entity, &mut Children), With<OpenGamesButtonsHolder>>,
+    open_games: Res<OpenGamesData>,
+) {
+    if open_games.is_changed() {
+        let (parent_entity, children) = open_games_query.single();
+        for child in children.iter() {
+            commands.entity(*child).despawn_recursive();
+        }
+        let mut tab_entities = vec![];
+        for (_, game) in open_games.games.iter() {
+            let Some(full_info) = &game.1 else {
+                continue;
+            };
+            let tab_content = game_entry_button(
+                GameEntryMarker,
+                GameEntryButtonStyle {
+                    game_name: full_info.game_name.clone(),
+                    player_count: full_info.game_players.count(),
+                    max_player_count: full_info.max_players,
+                    server_type: game.0.server_type.clone(),
+                    started_time: full_info.game_start_time,
+                },
+                &mut commands,
+                &colors,
+            );
+            tab_entities.push(tab_content);
+        }
+        commands.entity(parent_entity).push_children(&tab_entities);
+    }
 }

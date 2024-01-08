@@ -1,9 +1,23 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     auth_server::AccountId,
-    game_meta::{GameId, GamePlayers},
+    game_meta::{GameId, GamePlayers, GameStateEnum},
 };
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct GameMetaInfo {
+    pub game_id: GameId,
+    pub game_players: GamePlayers,
+    pub max_players: u8,
+    pub game_state: GameStateEnum,
+    pub is_open: bool,
+    pub has_space: bool,
+    pub owning_player: Option<AccountId>,
+    pub game_name: String,
+    pub game_start_time: Option<DateTime<Utc>>,
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct JoinGame {
@@ -35,13 +49,5 @@ pub struct RequestGamesInfo {
 /// the name of the game)
 #[derive(Serialize, Deserialize, Clone)]
 pub struct GamesInfoResponse {
-    pub games: Vec<(
-        GameId,
-        GamePlayers,
-        i32,
-        i32,
-        i32,
-        Option<AccountId>,
-        String,
-    )>,
+    pub games: Vec<GameMetaInfo>,
 }
